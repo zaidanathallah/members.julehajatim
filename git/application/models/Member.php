@@ -4,17 +4,25 @@ Class Member extends CI_Model{
         parent::__construct();
     }
     function getmax($region){
-        $sql = "select substring(m,4,2)hah,case when date_format(now(),'%y')=substring(m,4,2) then cast(substring(m,4,length(m)) as int)+1 else concat(date_format(now(),'%y'),'0001') end m from (";
+        $ci = & get_instance();
+        $safeRegion = $ci->db->escape_str($region);
+
+        // Cari initial resmi dari tabel regions (mendukung pencarian via initial maupun nama lengkap)
+        $regQuery = $ci->db->query("SELECT initial FROM regions WHERE UPPER(initial) = UPPER('".$safeRegion."') OR UPPER(name) = UPPER('".$safeRegion."') LIMIT 1");
+        $regRow = $regQuery ? $regQuery->row() : null;
+        $regCode = ($regRow && !empty($regRow->initial)) ? $regRow->initial : $region;
+        $safeRegCode = $ci->db->escape_str($regCode);
+
+        $sql = "select substring(m,4,2)hah, case when date_format(now(),'%y')=substring(m,4,2) then cast(substring(m,4,length(m)) as unsigned)+1 else concat(date_format(now(),'%y'),'0001') end m from (";
         $sql.= "select max(juleha_id)m from members ";
-        $sql.= "where region='".$region."') ";
+        $sql.= "where UPPER(region)=UPPER('".$safeRegCode."') OR UPPER(region)=UPPER('".$safeRegion."')) ";
         $sql.= "Z ";
         
-        
-        $ci = & get_instance();
         $que = $ci->db->query($sql);
         return array(
-            'res'=>$que->result(),
-            'cnt'=>$que->num_rows()
+            'res'=>$que ? $que->result() : [],
+            'cnt'=>$que ? $que->num_rows() : 0,
+            'initial'=>$regCode
         );
     }
     function gets(){

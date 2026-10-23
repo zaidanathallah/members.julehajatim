@@ -58,6 +58,49 @@
     border-radius: 50px;
     font-weight: 600;
   }
+  /* Styling Showing info & Pagination */
+  .dataTables_info {
+    font-size: 0.85rem !important;
+    color: #64748b !important;
+    font-weight: 500;
+    padding-top: 14px !important;
+  }
+  .dataTables_paginate {
+    padding-top: 10px !important;
+  }
+  .pagination {
+    margin: 0 !important;
+  }
+  .pagination .page-item .page-link {
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    background-color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 6px 11px;
+    margin: 0 2px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+  }
+  .pagination .page-item .page-link:hover {
+    background-color: #f1f5f9;
+    color: #007bff;
+    border-color: #cbd5e1;
+  }
+  .pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    border-color: #0056b3 !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 8px rgba(0, 123, 255, 0.35) !important;
+  }
+  .pagination .page-item.disabled .page-link {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #94a3b8 !important;
+    box-shadow: none !important;
+  }
+
   @media (max-width: 768px) {
     .content-header h1 {
       font-size: 1.35rem;
@@ -89,6 +132,37 @@
     .btn-action-mobile {
       padding: 4px 8px;
       font-size: 0.85rem;
+    }
+    .dataTables_info {
+      text-align: center !important;
+      padding-top: 12px !important;
+      padding-bottom: 4px !important;
+      font-size: 0.8rem !important;
+      width: 100%;
+    }
+    .dataTables_paginate {
+      text-align: center !important;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .dataTables_paginate .pagination {
+      justify-content: center !important;
+      flex-wrap: wrap;
+      gap: 2px;
+    }
+    .pagination .page-item .page-link {
+      font-size: 0.76rem !important;
+      padding: 5px 8px !important;
+      min-width: 28px;
+      margin: 0 1px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .pagination .page-item .page-link {
+      font-size: 0.72rem !important;
+      padding: 4px 6px !important;
+      min-width: 25px;
     }
   }
 </style>

@@ -136,7 +136,14 @@
 (function($){
   // 1. Fungsi Fetch ID Otomatis Berdasarkan Wilayah
   function fetchNextId(region) {
+    if(!region) {
+      region = $("#cmbRegion").val();
+    }
     if(!region) return;
+
+    var btn = $("#btnGenerateJulehaID");
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memuat...');
+
     $.ajax({
       url: "/members/getmax/" + encodeURIComponent(region),
       dataType: "json"
@@ -144,11 +151,14 @@
     .done(function(res){
       if(res && res.res && res.res.length > 0){
         var generatedId = res.res[0].m;
-        $('#txtJulehaId').val(region + generatedId);
+        var prefix = (res.initial) ? res.initial : region;
+        $('#txtJulehaId').val(prefix + generatedId);
       }
+      btn.prop('disabled', false).html('<i class="fas fa-magic mr-1"></i> Auto ID');
     })
     .fail(function(err){
       console.log("Gagal fetch ID maksimal", err);
+      btn.prop('disabled', false).html('<i class="fas fa-magic mr-1"></i> Auto ID');
     });
   }
 
@@ -162,11 +172,15 @@
     fetchNextId($("#cmbRegion").val());
   });
 
-  // Saat modal pertama kali dibuka
-  $('#modal-lg').on('shown.bs.modal', function(){
-    if(!$('#txtJulehaId').val()){
+  // Saat tombol Tambah Anggota diklik maupun saat modal ditampilkan
+  $('[data-target="#modal-lg"]').on('click', function(){
+    setTimeout(function(){
       fetchNextId($("#cmbRegion").val());
-    }
+    }, 50);
+  });
+
+  $('#modal-lg').on('show.bs.modal shown.bs.modal', function(){
+    fetchNextId($("#cmbRegion").val());
   });
 
   // 2. Preview Foto KTA

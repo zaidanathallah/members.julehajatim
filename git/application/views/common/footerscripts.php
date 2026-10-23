@@ -35,7 +35,17 @@
       "autoWidth": false,
       "scrollX": true,
       "responsive": false,
-      "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+      "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"],
+      "language": {
+        "info": "Menampilkan _START_ - _END_ dari _TOTAL_ data anggota",
+        "infoEmpty": "Tidak ada data anggota",
+        "infoFiltered": "(disaring dari _MAX_ total data)",
+        "search": "Cari Anggota:",
+        "paginate": {
+          "previous": "‹ Prev",
+          "next": "Next ›"
+        }
+      }
     }).buttons().container().appendTo('#example2_wrapper .col-md-6:eq(0)');
   });
 
