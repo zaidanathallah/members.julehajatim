@@ -85,6 +85,9 @@ console.log('add invoked');
   $('#btnUpdate').click(function(){
     console.log('test');
     myimg = document.getElementById("editimg");
+    var btn = $('#btnUpdate');
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+
     $.ajax({
       url:'/members/updatedata',
       data:{
@@ -98,21 +101,21 @@ console.log('add invoked');
           region:$('#cmbeditRegion').val(),
           position:$('#cmbeditRole').val(),
         },
-        //img:getBase64Image(myimg),
         img: $('#editimg').attr('src')
       },
       type:'post',
       dataType:'json'
     })
     .done(res=>{
-      console.log('Res',res)
-      $("#edit-modal-lg").modal("hide")
+      console.log('Res',res);
+      $("#edit-modal-lg").modal("hide");
+      location.reload();
     })
     .fail(err=>{
-      console.log("Err",err)
-      $("#edit-modal-lg").modal("hide")
-    })
-  });
+      console.log("Err",err);
+      alert('Gagal memperbarui data anggota.');
+      btn.prop('disabled', false).html('Update');
+    });
   $("#exampleInputFile").change(function(){
     var reader = new FileReader()
     reader.onload = imageIsLoaded

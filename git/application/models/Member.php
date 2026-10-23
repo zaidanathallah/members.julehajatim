@@ -68,15 +68,27 @@ Class Member extends CI_Model{
         );
     }
     function update($params){
-        $txt = array();
-        $sql = 'update  ' . $params['tableName'] . ' ';
-        $sql.= 'set ';
-        foreach($params['columns'] as $key=>$val){
-            array_push($txt,$key.'="'.$val.'"');
-        }
-        $sql.= ' '.implode(",",$txt)." ";
-        $sql.= ' where juleha_id = "' . $params['columns']['juleha_id'] . '" ';
         $ci = & get_instance();
+        $txt = array();
+        $sql = 'update ' . $params['tableName'] . ' ';
+        $sql.= 'set ';
+        $whereClause = '';
+
+        if (!empty($params['columns']['id'])) {
+            $whereClause = ' where id = "' . (int)$params['columns']['id'] . '" ';
+        } else if (!empty($params['columns']['juleha_id'])) {
+            $whereClause = ' where juleha_id = "' . $ci->db->escape_str($params['columns']['juleha_id']) . '" ';
+        }
+
+        foreach($params['columns'] as $key=>$val){
+            // Skip primary key from update columns if it's the id
+            if ($key === 'id' && !empty($whereClause)) {
+                continue;
+            }
+            array_push($txt, $key . '="' . $ci->db->escape_str($val) . '"');
+        }
+        $sql.= ' ' . implode(",", $txt) . ' ';
+        $sql.= $whereClause;
         $que = $ci->db->query($sql);
         return array(
             'sql'=>$sql

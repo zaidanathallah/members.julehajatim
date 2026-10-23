@@ -1,6 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <?php $this->load->view('common/head');?>
+<style>
+  /* Responsive Table & UI Tuning */
+  .table-responsive {
+    border-radius: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table thead th {
+    vertical-align: middle;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background-color: #f8fafc;
+    white-space: nowrap;
+  }
+  .table tbody td {
+    vertical-align: middle;
+    font-size: 0.88rem;
+  }
+  .dt-buttons .btn {
+    font-size: 0.82rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 6px;
+    margin-right: 4px;
+    margin-bottom: 6px;
+  }
+  .dataTables_filter input {
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    padding: 5px 12px;
+    font-size: 0.88rem;
+  }
+  .dropdown-menu {
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    border: 1px solid #e2e8f0;
+    min-width: 210px;
+    padding: 6px 0;
+  }
+  .dropdown-item {
+    font-size: 0.88rem;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .dropdown-item:hover {
+    background-color: #f1f5f9;
+  }
+  .badge-count {
+    font-size: 0.82rem;
+    padding: 4px 8px;
+    border-radius: 50px;
+    font-weight: 600;
+  }
+  @media (max-width: 768px) {
+    .content-header h1 {
+      font-size: 1.35rem;
+    }
+    .dt-buttons {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .dataTables_filter {
+      text-align: left !important;
+      margin-top: 6px;
+    }
+    .dataTables_filter input {
+      width: 100% !important;
+      max-width: 100%;
+    }
+    .btn-action-mobile {
+      padding: 4px 8px;
+      font-size: 0.85rem;
+    }
+  }
+</style>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
   <!-- Navbar -->
@@ -11,18 +86,20 @@
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="../../index3.html" class="nav-link">Home</a>
+        <a href="<?php echo base_url(); ?>" class="nav-link">Home</a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="#" class="nav-link">Contact</a>
+        <a href="https://julehajatim.com" target="_blank" class="nav-link">Portal Juleha</a>
       </li>
     </ul>
 
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
-      <!-- Navbar Search -->
-        <li><button class="btn" data-toggle="modal" data-target="#modal-lg">Baru</button></li>
-      <!-- Messages Dropdown Menu -->
+      <li class="nav-item">
+        <button class="btn btn-primary btn-sm rounded shadow-sm font-weight-bold px-3" data-toggle="modal" data-target="#modal-lg">
+          <i class="fas fa-user-plus mr-1"></i> + Tambah Anggota
+        </button>
+      </li>
     </ul>
   </nav>
   <!-- /.navbar -->
@@ -37,11 +114,11 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>Juleha Jatim</h1>
+            <h1 class="font-weight-bold text-dark">Daftar Anggota Juleha Jatim</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item"><a href="<?php echo base_url(); ?>">Home</a></li>
               <li class="breadcrumb-item active">Anggota</li>
             </ol>
           </div>
@@ -54,59 +131,116 @@
       <div class="container-fluid">
         <div class="row">
           <div class="col-12">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Daftar anggota Juleha Jawa Timur</h3>
+            <div class="card card-outline card-primary shadow-sm">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title font-weight-bold">
+                  <i class="fas fa-users mr-1 text-primary"></i> Data Keanggotaan Juru Sembelih Halal Jawa Timur
+                </h3>
               </div>
               <!-- /.card-header -->
               <div class="card-body">
-                <table id="example2" class="table table-bordered table-hover">
-                  <thead>
-                  <tr>
-                    <th>ID Juleha</th>
-                    <th>Panggilan</th>
-                    <th>Region</th>
-                    <th>Jabatan</th>
-                    <th>Alamat</th>
-                    <th>Sertifikat</th>
-                    <th>Portofolio</th>
-                    <th>Pelatihan</th>
-                    <th>Aksi</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <?php foreach($objs as $obj){?>
-                  <tr id=<?php echo $obj->id;?>>
-                    <td class='juleha_id'><?php echo $obj->juleha_id?></td>
-                    <td><?php echo $obj->nickname;?></td>
-                    <td><?php echo $obj->region;?></td>
-                    <td><?php echo $obj->position?></td>
-                    <td><?php echo $obj->address?></td>
-                    <td><?php echo $obj->certificate?></td>
-                    <td><?php echo $obj->portofolio?></td>
-                    <td><?php echo $obj->training?></td>
-                    <td>
-                    <button type="button" class="btn btn-default">Action</button>
-                    <button type="button" class="btn btn-default dropdown-toggle dropdown-icon" data-toggle="dropdown">
-                      <span class="sr-only">Toggle Dropdown</span>
-                    </button>
-                    <div class="dropdown-menu" role="menu">
-                      <a class="dropdown-item edit">Edit</a>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item btneditpassword">Edit Password</a>
-                      <a class="dropdown-item addCertificate" href="#">Penambahan Sertifikat</a>
-                      <a class="dropdown-item addPortofolio" href="#">Penambahan Portofolio</a>
-                      <a class="dropdown-item addTraining" href="#">Penambahan Pelatihan</a>
-                      <a class="dropdown-item addTraining" target="_blank" href="/members/showcard/<?php echo $obj->juleha_id?>">KTA</a>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">Jadikan Non Aktif</a>
-                      <a class="dropdown-item" href="/members/uploder/<?php echo $obj->juleha_id?>" target="_blank">Upload Foto</a>
-                    </div>
-                    </td>
-                  </tr>
-                  <?php }?>
-                  </tfoot>
-                </table>
+                <div class="table-responsive">
+                  <table id="example2" class="table table-bordered table-hover w-100">
+                    <thead>
+                    <tr>
+                      <th>ID Juleha</th>
+                      <th>Panggilan</th>
+                      <th>Region</th>
+                      <th>Jabatan</th>
+                      <th>Alamat</th>
+                      <th>Sertifikat</th>
+                      <th>Portofolio</th>
+                      <th>Pelatihan</th>
+                      <th>Status</th>
+                      <th class="text-center" style="width: 100px;">Aksi</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach($objs as $obj){ 
+                      $isAktif = strtolower($obj->mstatus) === 'aktif';
+                      $cleanNick = htmlspecialchars($obj->nickname ?? '', ENT_QUOTES, 'UTF-8');
+                      $cleanJulehaId = htmlspecialchars($obj->juleha_id ?? '', ENT_QUOTES, 'UTF-8');
+                    ?>
+                    <tr id="<?php echo $obj->id;?>" data-id="<?php echo $obj->id;?>" data-juleha-id="<?php echo $cleanJulehaId;?>">
+                      <td class="juleha_id font-weight-bold text-primary">
+                        <a href="<?php echo base_url('members/showcard/' . rawurlencode($cleanJulehaId)); ?>" target="_blank" title="Lihat Kartu KTA">
+                          <?php echo $cleanJulehaId;?>
+                        </a>
+                      </td>
+                      <td><strong><?php echo $cleanNick;?></strong></td>
+                      <td><span class="badge badge-light border"><?php echo htmlspecialchars($obj->region ?? '', ENT_QUOTES, 'UTF-8');?></span></td>
+                      <td><?php echo htmlspecialchars($obj->position ?? '-', ENT_QUOTES, 'UTF-8');?></td>
+                      <td><small class="text-muted"><?php echo htmlspecialchars($obj->address ?? '-', ENT_QUOTES, 'UTF-8');?></small></td>
+                      <td class="text-center">
+                        <span class="badge badge-info badge-count" title="Jumlah Sertifikat">
+                          <i class="fas fa-certificate mr-1"></i><?php echo (int)($obj->certificate ?? 0);?>
+                        </span>
+                      </td>
+                      <td class="text-center">
+                        <span class="badge badge-success badge-count" title="Jumlah Portofolio">
+                          <i class="fas fa-briefcase mr-1"></i><?php echo (int)($obj->portofolio ?? 0);?>
+                        </span>
+                      </td>
+                      <td class="text-center">
+                        <span class="badge badge-warning badge-count" title="Jumlah Pelatihan">
+                          <i class="fas fa-graduation-cap mr-1"></i><?php echo (int)($obj->training ?? 0);?>
+                        </span>
+                      </td>
+                      <td class="text-center">
+                        <?php if ($isAktif): ?>
+                          <span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i>Aktif</span>
+                        <?php else: ?>
+                          <span class="badge badge-danger px-2 py-1"><i class="fas fa-times-circle mr-1"></i>Non Aktif</span>
+                        <?php endif; ?>
+                      </td>
+                      <td class="text-center">
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle btn-action-mobile" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-cog mr-1"></i> Opsi
+                          </button>
+                          <div class="dropdown-menu dropdown-menu-right shadow" role="menu">
+                            <a class="dropdown-item edit" href="javascript:void(0);" 
+                               data-id="<?php echo $obj->id;?>" data-juleha-id="<?php echo $cleanJulehaId;?>" data-nickname="<?php echo $cleanNick;?>">
+                              <i class="fas fa-edit mr-2 text-primary"></i> Edit Data Anggota
+                            </a>
+                            <a class="dropdown-item btneditpassword" href="javascript:void(0);" 
+                               data-id="<?php echo $obj->id;?>" data-juleha-id="<?php echo $cleanJulehaId;?>" data-nickname="<?php echo $cleanNick;?>">
+                              <i class="fas fa-key mr-2 text-warning"></i> Ubah Password
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item addCertificate" href="javascript:void(0);" 
+                               data-id="<?php echo $obj->id;?>" data-juleha-id="<?php echo $cleanJulehaId;?>" data-nickname="<?php echo $cleanNick;?>">
+                              <i class="fas fa-certificate mr-2 text-info"></i> Tambah Sertifikat
+                            </a>
+                            <a class="dropdown-item addPortofolio" href="javascript:void(0);" 
+                               data-id="<?php echo $obj->id;?>" data-juleha-id="<?php echo $cleanJulehaId;?>" data-nickname="<?php echo $cleanNick;?>">
+                              <i class="fas fa-briefcase mr-2 text-success"></i> Tambah Portofolio
+                            </a>
+                            <a class="dropdown-item addTraining" href="javascript:void(0);" 
+                               data-id="<?php echo $obj->id;?>" data-juleha-id="<?php echo $cleanJulehaId;?>" data-nickname="<?php echo $cleanNick;?>">
+                              <i class="fas fa-graduation-cap mr-2 text-secondary"></i> Tambah Pelatihan
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-primary font-weight-bold" target="_blank" href="<?php echo base_url('members/showcard/' . rawurlencode($cleanJulehaId)); ?>">
+                              <i class="fas fa-id-card mr-2"></i> Lihat & Cetak KTA
+                            </a>
+                            <a class="dropdown-item text-info font-weight-bold" target="_blank" href="<?php echo base_url('members/uploder/' . rawurlencode($cleanJulehaId)); ?>">
+                              <i class="fas fa-camera mr-2"></i> Upload / Ganti Foto
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item toggleStatus <?php echo $isAktif ? 'text-danger' : 'text-success'; ?>" href="javascript:void(0);"
+                               data-id="<?php echo $obj->id;?>" data-juleha-id="<?php echo $cleanJulehaId;?>" data-nickname="<?php echo $cleanNick;?>" data-status="<?php echo $isAktif ? '0' : '1'; ?>">
+                              <i class="fas <?php echo $isAktif ? 'fa-user-slash text-danger' : 'fa-user-check text-success'; ?> mr-2"></i> 
+                              <?php echo $isAktif ? 'Jadikan Non Aktif' : 'Jadikan Aktif'; ?>
+                            </a>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    <?php }?>
+                    </tbody>
+                  </table>
+                </div>
               </div>
               <!-- /.card-body -->
             </div>
@@ -121,87 +255,161 @@
     <!-- /.content -->
   </div>
   <!-- /.content-wrapper -->
+
   <footer class="main-footer">
     <div class="float-right d-none d-sm-block">
-      <b>Version</b> 1.0
+      <b>Versi</b> 1.0 (Auto-Compress & Mobile Optimized)
     </div>
-    <strong>Copyright &copy; 2021-2025 <a href="http://julehajatim.com">Julehajatim.com</a>.</strong> All rights reserved.
+    <strong>Copyright &copy; 2021-2026 <a href="https://julehajatim.com" target="_blank">Juru Sembelih Halal (Juleha) Jawa Timur</a>.</strong> All rights reserved.
   </footer>
 
   <!-- Control Sidebar -->
   <aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
   </aside>
   <!-- /.control-sidebar -->
 </div>
 <!-- ./wrapper -->
+
 <?php $this->load->view('common/footerscripts');?>
 <?php $this->load->view('members/add');?>
 <?php $this->load->view('members/edit');?>
 <?php $this->load->view('members/addCertificate');?>
 <?php $this->load->view('members/addPortofolio');?>
+<?php $this->load->view('members/addTraining');?>
 <?php $this->load->view('members/editPassword');?>
-<script>
-  $.fn.stairUp = function(options){
-	var settings = $.extend({
-		level:1
-	},options);
-	out=$(this);
-	for(i=0;i<settings.level;i++){
-		out=out.parent();
-	}
-	return out;
-}
 
-  $('#example2').on('click','.addCertificate',function(){
-    console.log('x')
-    $('#modal-lg-certificate').modal();
-  })
-  $('#example2').on('click','.addPortofolio',function(){
-    console.log('x')
-    $('#modal-lg-portofolio').modal();
-  })
-  $('#example2').on('click','.addTraining',function(){
-    console.log('x')
-    $('#modal-lg-training').modal();
-  })
-  $('#example2').on('click','.btneditpassword',function(){
-    console.log('edit passsword clicked');
-    $('#example2 tr').removeClass('selected')
-    $(this).stairUp({level:3}).addClass('selected')
-    idedit = $(this).stairUp({level:3}).addClass('selected').attr('id')
-    //$('#example2 tr.selected').attr('id')
-    idedit = $(this).stairUp({level:3}).attr("id")
-    $('#modal-lg-edit-password').modal();
-  })
-  $("#example2").on("click",".edit",function(){
-    let juleha_id = $(this).stairUp({level:3}).find(".juleha_id").text()
-    console.log("TEs E",juleha_id)
+<script>
+  // Helper universal untuk mendeteksi ID dan Juleha ID di desktop maupun responsive child row
+  function extractRowMember(el) {
+    var $el = $(el);
+    var id = $el.data('id');
+    var julehaId = $el.data('juleha-id');
+    var nickname = $el.data('nickname');
+
+    if (!id || !julehaId) {
+      var $row = $el.closest('tr');
+      if ($row.hasClass('child')) {
+        $row = $row.prev('tr');
+      }
+      id = $row.attr('id') || $row.data('id');
+      julehaId = $row.find('.juleha_id').text().trim() || $row.data('juleha-id');
+      nickname = $row.find('td:eq(1)').text().trim() || $row.data('nickname');
+    }
+    return { id: id, julehaId: julehaId, nickname: nickname };
+  }
+
+  // 1. Tambah Sertifikat
+  $('#example2').on('click', '.addCertificate', function(e){
+    e.preventDefault();
+    var info = extractRowMember(this);
+    $('#cert_member_id').val(info.id);
+    $('#cert_member_info').text((info.nickname || '') + ' (' + info.julehaId + ')');
+    $('#txtCertSubject').val('');
+    $('#modal-lg-certificate').modal('show');
+  });
+
+  // 2. Tambah Portofolio
+  $('#example2').on('click', '.addPortofolio', function(e){
+    e.preventDefault();
+    var info = extractRowMember(this);
+    $('#porto_member_id').val(info.id);
+    $('#porto_member_info').text((info.nickname || '') + ' (' + info.julehaId + ')');
+    $('#txtPortoSubject').val('');
+    $('#modal-lg-portofolio').modal('show');
+  });
+
+  // 3. Tambah Pelatihan
+  $('#example2').on('click', '.addTraining', function(e){
+    e.preventDefault();
+    var info = extractRowMember(this);
+    $('#training_member_id').val(info.id);
+    $('#training_member_info').text((info.nickname || '') + ' (' + info.julehaId + ')');
+    $('#txtTrainingSubject').val('');
+    $('#txtTrainingRole').val('Peserta');
+    $('#modal-lg-training').modal('show');
+  });
+
+  // 4. Ubah Password
+  $('#example2').on('click', '.btneditpassword', function(e){
+    e.preventDefault();
+    var info = extractRowMember(this);
+    $('#txtEditPasswordMemberId').val(info.id);
+    $('#txtEditPasswordJulehaId').val(info.julehaId);
+    $('#txtEditPasswordMemberInfo').text((info.nickname || '') + ' (' + info.julehaId + ')');
+    $('#txtEditPassword').val('');
+    $('#txtEditPassword2').val('');
+    $('#modal-lg-edit-password').modal('show');
+  });
+
+  // 5. Edit Data Anggota
+  $('#example2').on('click', '.edit', function(e){
+    e.preventDefault();
+    var info = extractRowMember(this);
+    if (!info.julehaId) {
+      alert('Gagal mendeteksi ID Juleha.');
+      return;
+    }
+
     $.ajax({
-      url:'/members/get/'+juleha_id,
-      type:'get',
-      dataType:'json'
+      url: '/members/get/' + encodeURIComponent(info.julehaId),
+      type: 'GET',
+      dataType: 'json'
     })
-    .done(res=>{
-      console.log("R",res)
-      $('#txteditJulehaId').val(res.res.juleha_id)
-      $('#txteditNickName').val(res.res.nickname)
-      $('#txteditFirstName').val(res.res.firstname)
-      $('#txteditLastName').val(res.res.lastname)
-      $('#txteditAddress').val(res.res.address)
-      $('#cmbeditRegion').val(res.res.region)
-      $('#cmbeditRegion option').each(function(){
-        console.log("this combo",$(this).val())
-        if((res.res.region).toUpperCase() === ($(this).val()).toUpperCase()){
-          $(this).attr('selected','selected')
+    .done(function(res){
+      if (res && res.res) {
+        var m = res.res;
+        $('#txteditJulehaId').val(m.juleha_id);
+        $('#txteditNickName').val(m.nickname);
+        $('#txteditFirstName').val(m.firstname);
+        $('#txteditLastName').val(m.lastname);
+        $('#txteditAddress').val(m.address);
+        $('#cmbeditRegion').val(m.region);
+        if (m.region) {
+          $('#cmbeditRegion option').each(function(){
+            if ($(this).val().toUpperCase() === m.region.toUpperCase()){
+              $(this).prop('selected', true);
+            }
+          });
         }
+        $('#edit-modal-lg').modal('show');
+      } else {
+        alert('Data anggota tidak ditemukan.');
+      }
+    })
+    .fail(function(err){
+      alert('Gagal mengambil data anggota dari server.');
+    });
+  });
+
+  // 6. Toggle Status Aktif / Non-Aktif
+  $('#example2').on('click', '.toggleStatus', function(e){
+    e.preventDefault();
+    var info = extractRowMember(this);
+    var targetStatus = $(this).data('status');
+    var statusText = targetStatus == '1' ? 'MENGAKTIFKAN' : 'MENONAKTIFKAN';
+
+    if (confirm('Apakah Anda yakin ingin ' + statusText + ' status anggota: ' + (info.nickname || info.julehaId) + '?')) {
+      $.ajax({
+        url: '/members/updatedata',
+        type: 'POST',
+        data: {
+          tableName: 'members',
+          columns: {
+            id: info.id,
+            juleha_id: info.julehaId,
+            mstatus: targetStatus
+          }
+        },
+        dataType: 'json'
       })
-      $("#edit-modal-lg").modal()
-    })
-    .fail(err=>{
-      console.log("ERr",err)
-    })
-  })
+      .done(function(res){
+        location.reload();
+      })
+      .fail(function(err){
+        alert('Gagal mengubah status anggota.');
+      });
+    }
+  });
 </script>
 </body>
 </html>

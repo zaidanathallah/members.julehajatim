@@ -75,7 +75,7 @@
             <?php 
                 $hasId = !empty($juleha_id); 
                 $cleanId = $hasId ? htmlspecialchars($juleha_id, ENT_QUOTES, 'UTF-8') : '';
-                $currentImg = $hasId ? base_url('images/' . $cleanId . '.jpg') : 'https://via.placeholder.com/160x200?text=Foto+KTA';
+                $currentImg = $hasId ? base_url('images/' . $cleanId . '.jpg?t=' . time()) : 'https://via.placeholder.com/160x200?text=Foto+KTA';
             ?>
             <form id="uploadForm" action="<?php echo base_url('members/upload_foto_kta'); ?>" method="post" enctype="multipart/form-data" onsubmit="handleSubmit();">
                 <div class="preview-box">

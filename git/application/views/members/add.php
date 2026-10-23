@@ -151,6 +151,9 @@ $('#btnSave').click(function(){
         formData.append('img_file', fileInput.files[0]); // Mengirim file asli
     }
 
+    var btn = $('#btnSave');
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+
     $.ajax({
       url: '/members/save',
       type: 'POST',
@@ -162,9 +165,12 @@ $('#btnSave').click(function(){
     .done(res => {
       console.log('Res', res);
       $("#modal-lg").modal("hide");
+      location.reload();
     })
     .fail(err => {
       console.log("Err", err);
+      alert('Gagal menyimpan data anggota. Silakan periksa isian Anda.');
+      btn.prop('disabled', false).html('Simpan');
     });
 });
 

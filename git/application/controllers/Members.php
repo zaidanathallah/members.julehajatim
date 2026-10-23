@@ -155,7 +155,7 @@ Class Members extends CI_Controller{
             }
         }
 
-        echo "<script>alert('Foto KTA berhasil diunggah dan otomatis dikompres.'); window.location.href='" . base_url('members/showcard/' . rawurlencode($customName)) . "';</script>";
+        echo "<script>alert('Foto KTA berhasil diunggah dan otomatis dikompres.'); window.location.replace('" . base_url('members/showcard/' . rawurlencode($customName) . '?updated=' . time()) . "');</script>";
     }
 
     // Alias aman untuk endpoint legacy ngaplod
@@ -344,21 +344,67 @@ Class Members extends CI_Controller{
     }
 function save(){
     $params = $this->input->post();
-    $params['columns']['password'] = sha1($params['columns']['password']);
-    
-    $juleha_id = $params['columns']['juleha_id'];
-    
-    // Cek apakah ada file gambar yang dikirim dari frontend
-    if (!empty($_FILES['img_file']['tmp_name'])) {
-        // Tentukan lokasi dan nama file tujuan
-        $fileName = $this->config->item('userimagepath') . $juleha_id . '.jpg';
-        
-        // Langsung pindahkan file asli ke folder tujuan
-        move_uploaded_file($_FILES['img_file']['tmp_name'], $fileName);
-    } else {
-        log_message('error', 'Tidak ada file gambar yang diterima oleh server.');
+    if (!isset($params['columns']) || !is_array($params['columns'])) {
+        echo json_encode(['result' => false, 'message' => 'Invalid parameters']);
+        return;
     }
-    
+
+    $tableName = $params['tableName'] ?? 'members';
+
+    // Hash password jika tabel members dan password diisi
+    if ($tableName === 'members') {
+        if (!empty($params['columns']['password'])) {
+            $params['columns']['password'] = sha1($params['columns']['password']);
+        }
+        
+        $juleha_id = $params['columns']['juleha_id'] ?? '';
+        
+        // Auto-kompresi gambar jika ada upload foto saat pendaftaran anggota baru
+        if (!empty($juleha_id) && !empty($_FILES['img_file']['tmp_name'])) {
+            $uploadPath = './images/';
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, TRUE);
+            }
+            $targetJpg = $uploadPath . $juleha_id . '.jpg';
+            $sourceFilePath = $_FILES['img_file']['tmp_name'];
+            $imageContent = file_get_contents($sourceFilePath);
+            $sourceImg = @imagecreatefromstring($imageContent);
+            if ($sourceImg !== false) {
+                if (function_exists('exif_read_data')) {
+                    $exif = @exif_read_data($sourceFilePath);
+                    if (!empty($exif['Orientation'])) {
+                        switch ($exif['Orientation']) {
+                            case 3: $sourceImg = imagerotate($sourceImg, 180, 0); break;
+                            case 6: $sourceImg = imagerotate($sourceImg, -90, 0); break;
+                            case 8: $sourceImg = imagerotate($sourceImg, 90, 0); break;
+                        }
+                    }
+                }
+                $origWidth  = imagesx($sourceImg);
+                $origHeight = imagesy($sourceImg);
+                $maxWidth   = 800;
+                $maxHeight  = 1000;
+                if ($origWidth > $maxWidth || $origHeight > $maxHeight) {
+                    $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
+                    $newWidth  = (int) round($origWidth * $ratio);
+                    $newHeight = (int) round($origHeight * $ratio);
+                } else {
+                    $newWidth  = $origWidth;
+                    $newHeight = $origHeight;
+                }
+                $canvas = imagecreatetruecolor($newWidth, $newHeight);
+                $white  = imagecolorallocate($canvas, 255, 255, 255);
+                imagefilledrectangle($canvas, 0, 0, $newWidth, $newHeight, $white);
+                imagecopyresampled($canvas, $sourceImg, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+                imagejpeg($canvas, $targetJpg, 82);
+                imagedestroy($canvas);
+                imagedestroy($sourceImg);
+            } else {
+                move_uploaded_file($sourceFilePath, $targetJpg);
+            }
+        }
+    }
+
     // Simpan data text ke database dan kirim respon json
     echo json_encode($this->member->save($params));
 }
@@ -482,7 +528,11 @@ function saveImage($img, $juleha_id){
     }
     function update(){
         $params = $this->input->post();
-        $params['columns']['password'] = sha1($params['columns']['password']);
+        if (isset($params['columns']['password']) && $params['columns']['password'] !== '') {
+            $params['columns']['password'] = sha1($params['columns']['password']);
+        } else if (isset($params['columns']['password'])) {
+            unset($params['columns']['password']);
+        }
         echo json_encode($this->member->update($params));
     }
     function get(){

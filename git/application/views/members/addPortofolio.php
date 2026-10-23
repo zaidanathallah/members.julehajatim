@@ -1,103 +1,71 @@
-<div class="modal fade" id="modal-lg-certificate">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h4 class="modal-title">Penambahan Portofolio</h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p>
-                
-
-
-            <div class="container-fluid">
-        <div class="row">
-          <!-- left column -->
-          <div class="col-md-12">
-            <!-- general form elements -->
-            <div class="card card-primary">
-              <!-- /.card-header -->
-              <!-- form start -->
-                <div class="card-body">
-                <div class="form-group">
-                    <label for="exampleInputEmail1">ID Juleha</label>
-                    <input type="text" class="form-control" id="txtJulehaId" placeholder="ID Juleha">
-                  </div>
-                <div class="form-group">
-                    <label for="exampleInputEmail1">Nama Panggilan</label>
-                    <input type="text" class="form-control" id="txtNickName" placeholder="Nama Panggilan">
-                  </div>
-                  <div class="form-group">
-                    <label for="exampleInputPassword1">Nama Pertama</label>
-                    <input type="text" class="form-control" id="txtFirstName" placeholder="Nama Pertama">
-                  </div>
-                  <div class="form-group">
-                    <label for="exampleInputPassword1">Nama Akhir</label>
-                    <input type="text" class="form-control" id="txtLastName" placeholder="Nama Akhir">
-                  </div>
-                  <div class="form-group">
-                    <label for="exampleInputEmail1">Alamat</label>
-                    <input type="text" class="form-control" id="txtAddress" placeholder="Alamat">
-                  </div>
-                  <div class="form-group">
-                    <label for="exampleInputFile">File input</label>
-                    <div class="input-group">
-                      <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="exampleInputFile">
-                        <label class="custom-file-label" for="exampleInputFile">Choose file</label>
-                      </div>
-                      <div class="input-group-append">
-                        <span class="input-group-text">Upload</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                    <label class="form-check-label" for="exampleCheck1">Check me out</label>
-                  </div>
-                </div>
-                <!-- /.card-body -->
+<div class="modal fade" id="modal-lg-portofolio" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-briefcase mr-2"></i>Penambahan Portofolio Anggota</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-            <!-- /.card -->
-
-          </div>
-          <!--/.col (left) -->
-          <!-- right column -->
-          <!--/.col (right) -->
+            <div class="modal-body p-4">
+                <input type="hidden" id="porto_member_id">
+                <div class="alert alert-info py-2 px-3 mb-3" style="font-size: 0.95rem;">
+                    <i class="fas fa-user mr-1"></i> Anggota: <strong id="porto_member_info">-</strong>
+                </div>
+                <div class="form-group">
+                    <label class="font-weight-bold">Kegiatan / Deskripsi Portofolio <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="txtPortoSubject" rows="3" placeholder="Contoh: Penyembelihan 50 Ekor Sapi Kurban Idul Adha Masjid Al-Akbar" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="font-weight-bold">Tanggal Kegiatan <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="txtPortoDate" value="<?php echo date('Y-m-d'); ?>" required>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between bg-light">
+                <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-success px-4 font-weight-bold" id="btnSavePortofolio"><i class="fas fa-save mr-1"></i> Simpan Portofolio</button>
+            </div>
         </div>
-        <!-- /.row -->
-      </div><!-- /.container-fluid -->
-
-
-
-
-
-
-            </p>
-        </div>
-        <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
-            <button type="button" class="btn btn-primary" id="btnSavePortofolio">Simpan</button>
-        </div>
-        </div>
-        <!-- /.modal-content -->
     </div>
-<!-- /.modal-dialog -->
 </div>
-<script>
-console.log('add invoked');
-(function($){
-  $('#btnSavePortofolio').click(function(){
-    console.log('test');
-    $.ajax({
-      url:'/members/save',
-      data:{
-        
-      }
-    })
-  });
 
-}(jQuery))
+<script>
+(function($){
+    $('#btnSavePortofolio').click(function(){
+        var memberId = $('#porto_member_id').val();
+        var subject  = $('#txtPortoSubject').val().trim();
+        var date     = $('#txtPortoDate').val();
+
+        if(!subject){
+            alert('Harap isi Deskripsi Portofolio!');
+            $('#txtPortoSubject').focus();
+            return;
+        }
+
+        var btn = $(this);
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+
+        $.ajax({
+            url: '/members/save',
+            type: 'POST',
+            data: {
+                tableName: 'portofolio',
+                columns: {
+                    member_id: memberId,
+                    subject: subject,
+                    eventdate: date
+                }
+            },
+            dataType: 'json'
+        })
+        .done(function(res){
+            $('#modal-lg-portofolio').modal('hide');
+            location.reload();
+        })
+        .fail(function(err){
+            alert('Gagal menyimpan portofolio. Silakan periksa koneksi.');
+            btn.prop('disabled', false).html('<i class="fas fa-save mr-1"></i> Simpan Portofolio');
+        });
+    });
+})(jQuery);
 </script>
