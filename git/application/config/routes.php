@@ -52,3 +52,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'Members';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+// Rute kompatibilitas uploder
+$route['uploder'] = 'members/uploder';
+$route['uploder/(:any)'] = 'members/uploder/$1';
+$route['uploder\.php'] = 'members/uploder';
+$route['uploder\.php/(:any)'] = 'members/uploder/$1';

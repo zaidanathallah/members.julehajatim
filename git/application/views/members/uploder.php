@@ -72,14 +72,23 @@
             <small>DPW Juru Sembelih Halal (Juleha) Jawa Timur</small>
         </div>
         <div class="upload-body">
-            <form action="/members/upload_foto_kta" method="post" enctype="multipart/form-data">
+            <?php 
+                $hasId = !empty($juleha_id); 
+                $cleanId = $hasId ? htmlspecialchars($juleha_id, ENT_QUOTES, 'UTF-8') : '';
+                $currentImg = $hasId ? base_url('images/' . $cleanId . '.jpg') : 'https://via.placeholder.com/160x200?text=Foto+KTA';
+            ?>
+            <form action="<?php echo base_url('members/upload_foto_kta'); ?>" method="post" enctype="multipart/form-data">
                 <div class="preview-box">
-                    <img id="imgPreview" src="/images/<?php echo htmlspecialchars($juleha_id, ENT_QUOTES, 'UTF-8'); ?>.jpg" onerror="this.src='https://via.placeholder.com/160x200?text=Foto+KTA'" alt="Preview Foto">
+                    <img id="imgPreview" src="<?php echo $currentImg; ?>" onerror="this.src='https://via.placeholder.com/160x200?text=Foto+KTA'" alt="Preview Foto">
                 </div>
 
                 <div class="form-group">
-                    <label for="custom_name" class="font-weight-bold">Nomor ID Juleha:</label>
-                    <input type="text" name="custom_name" id="custom_name" class="form-control" value="<?php echo htmlspecialchars($juleha_id, ENT_QUOTES, 'UTF-8'); ?>" readonly required>
+                    <label for="custom_name" class="font-weight-bold">Nomor ID Juleha / Nama File:</label>
+                    <input type="text" name="custom_name" id="custom_name" class="form-control" 
+                           value="<?php echo $cleanId; ?>" 
+                           placeholder="Contoh: SDA220003" 
+                           <?php echo $hasId ? 'readonly' : ''; ?> required>
+                    <small class="form-text text-muted"><?php echo $hasId ? 'ID Juleha telah terkunci sesuai data anggota.' : 'Masukkan Nomor ID Juleha (misal: SDA220003) untuk foto KTA.'; ?></small>
                 </div>
 
                 <div class="form-group">
@@ -90,7 +99,7 @@
 
                 <div class="mt-4">
                     <input type="submit" value="Upload & Perbarui Foto KTA" name="submit" class="btn btn-upload">
-                    <a href="/members/showcard/<?php echo htmlspecialchars($juleha_id, ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-outline-secondary btn-block mt-2">Batal & Lihat KTA</a>
+                    <a id="btnBatal" href="<?php echo $hasId ? base_url('members/showcard/' . $cleanId) : base_url(); ?>" class="btn btn-outline-secondary btn-block mt-2">Batal & Kembali</a>
                 </div>
             </form>
         </div>
@@ -107,6 +116,16 @@ function previewImage(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
+
+document.getElementById('custom_name').addEventListener('input', function() {
+    var id = this.value.trim();
+    var btn = document.getElementById('btnBatal');
+    if (id) {
+        btn.href = '<?php echo base_url('members/showcard/'); ?>' + encodeURIComponent(id);
+    } else {
+        btn.href = '<?php echo base_url(); ?>';
+    }
+});
 </script>
 
 </body>
