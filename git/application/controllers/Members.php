@@ -196,7 +196,14 @@ Class Members extends CI_Controller{
         $this->load->view('members/all',$data);
     }
     function login(){
-        $this->load->view('members/login');
+        $this->ensure_session_started();
+        $data = array(
+            'login_error'    => $_SESSION['login_error'] ?? null,
+            'prev_juleha_id' => $_SESSION['prev_juleha_id'] ?? ''
+        );
+        unset($_SESSION['login_error']);
+        unset($_SESSION['prev_juleha_id']);
+        $this->load->view('members/login', $data);
     }
     function loginhandler0(){
         $juleha_id = $this->input->post('juleha_id', TRUE);
@@ -234,25 +241,65 @@ Class Members extends CI_Controller{
     function loginhandler(){
         $this->ensure_session_started();
         $params = $this->input->post();
-        if (empty($params['juleha_id']) || empty($params['password'])) {
+        $juleha_id = strtoupper(trim($params['juleha_id'] ?? ''));
+        $password = (string)($params['password'] ?? '');
+
+        if (empty($juleha_id) && empty($password)) {
+            $_SESSION['login_error'] = 'Silakan masukkan Nomor ID Juleha dan Password.';
             redirect('/members/login');
             return;
         }
-        $gpw = $this->member->getpassword($params['juleha_id']);
-        if($gpw && isset($gpw['password']) && $gpw['password']===sha1($params['password'])){
-            $_SESSION['juleha_id'] = $params['juleha_id'];
-            $_SESSION['id'] = $gpw['id'];
-            $_SESSION['memberlevel'] = $gpw['memberlevel'];
-            if (isset($this->session) && is_object($this->session)) {
-                $this->session->set_userdata([
-                    'juleha_id'   => $params['juleha_id'],
-                    'id'          => $gpw['id'],
-                    'memberlevel' => $gpw['memberlevel']
-                ]);
-            }
-            redirect('/members/profile');
-        }else{
+
+        if (empty($juleha_id)) {
+            $_SESSION['login_error'] = 'Nomor ID Juleha wajib diisi.';
             redirect('/members/login');
+            return;
+        }
+
+        if (empty($password)) {
+            $_SESSION['login_error'] = 'Password akun Anda wajib diisi.';
+            $_SESSION['prev_juleha_id'] = $juleha_id;
+            redirect('/members/login');
+            return;
+        }
+
+        $gpw = $this->member->getpassword($juleha_id);
+
+        // 1. Validasi keberadaan ID Juleha di database
+        if (!$gpw || !isset($gpw['id']) || (isset($gpw['password']) && $gpw['password'] === 'tik ketemu')) {
+            $_SESSION['login_error'] = 'Nomor ID Juleha "' . htmlspecialchars($juleha_id) . '" tidak terdaftar atau tidak ditemukan di database!';
+            $_SESSION['prev_juleha_id'] = $juleha_id;
+            redirect('/members/login');
+            return;
+        }
+
+        // 2. Validasi kecocokan password dengan SHA1 di database
+        if ($gpw['password'] !== sha1($password)) {
+            $_SESSION['login_error'] = 'Password yang Anda masukkan salah. Silakan periksa kembali!';
+            $_SESSION['prev_juleha_id'] = $juleha_id;
+            redirect('/members/login');
+            return;
+        }
+
+        // Login Berhasil
+        unset($_SESSION['login_error']);
+        unset($_SESSION['prev_juleha_id']);
+        $_SESSION['juleha_id'] = $juleha_id;
+        $_SESSION['id'] = $gpw['id'];
+        $_SESSION['memberlevel'] = $gpw['memberlevel'];
+        if (isset($this->session) && is_object($this->session)) {
+            $this->session->set_userdata([
+                'juleha_id'   => $juleha_id,
+                'id'          => $gpw['id'],
+                'memberlevel' => $gpw['memberlevel']
+            ]);
+        }
+
+        // Jika Admin (level 1), arahkan ke Daftar Anggota (/members/index). Jika Member (level 2), ke Profil.
+        if ((int)$gpw['memberlevel'] < 2) {
+            redirect('/members/index');
+        } else {
+            redirect('/members/profile');
         }
     }
     function authhandler_(){
@@ -534,6 +581,28 @@ function saveImage($img, $juleha_id){
             unset($params['columns']['password']);
         }
         echo json_encode($this->member->update($params));
+    }
+    function deletemember(){
+        $this->ensure_session_started();
+        header('Content-Type: application/json');
+
+        // Proteksi Otorisasi: Hanya Admin (level 1) yang diizinkan menghapus data anggota
+        if (!$this->is_logged_in() || (int)$this->get_session_data('memberlevel') > 1) {
+            echo json_encode(['status' => false, 'message' => 'Akses ditolak. Hanya Admin yang memiliki wewenang untuk menghapus data anggota.']);
+            return;
+        }
+
+        $params = $this->input->post();
+        $id = isset($params['id']) ? (int)$params['id'] : null;
+        $juleha_id = $params['juleha_id'] ?? null;
+
+        if (!$id) {
+            echo json_encode(['status' => false, 'message' => 'Parameter ID anggota tidak valid.']);
+            return;
+        }
+
+        $res = $this->member->delete_member($id, $juleha_id);
+        echo json_encode($res);
     }
     function get(){
         $obj = $this->member->get($this->uri->segment(3));

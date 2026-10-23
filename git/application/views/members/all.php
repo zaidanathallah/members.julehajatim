@@ -319,10 +319,14 @@
                               <i class="fas fa-camera mr-2"></i> Upload / Ganti Foto
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item toggleStatus <?php echo $isAktif ? 'text-danger' : 'text-success'; ?>" href="javascript:void(0);"
+                            <a class="dropdown-item toggleStatus <?php echo $isAktif ? 'text-warning' : 'text-success'; ?>" href="javascript:void(0);"
                                data-id="<?php echo $obj->id;?>" data-juleha-id="<?php echo $cleanJulehaId;?>" data-nickname="<?php echo $cleanNick;?>" data-status="<?php echo $isAktif ? '0' : '1'; ?>">
-                              <i class="fas <?php echo $isAktif ? 'fa-user-slash text-danger' : 'fa-user-check text-success'; ?> mr-2"></i> 
+                              <i class="fas <?php echo $isAktif ? 'fa-user-slash text-warning' : 'fa-user-check text-success'; ?> mr-2"></i> 
                               <?php echo $isAktif ? 'Jadikan Non Aktif' : 'Jadikan Aktif'; ?>
+                            </a>
+                            <a class="dropdown-item btn-delete-member text-danger" href="javascript:void(0);"
+                               data-id="<?php echo $obj->id;?>" data-juleha-id="<?php echo $cleanJulehaId;?>" data-nickname="<?php echo $cleanNick;?>">
+                              <i class="fas fa-trash-alt mr-2 text-danger"></i> Hapus Data Anggota
                             </a>
                           </div>
                         </div>
@@ -497,6 +501,41 @@
       })
       .fail(function(err){
         alert('Gagal mengubah status anggota.');
+      });
+    }
+  });
+
+  // 7. Hapus Data Anggota Permanen (Khusus Admin)
+  $('#example2').on('click', '.btn-delete-member', function(e){
+    e.preventDefault();
+    var info = extractRowMember(this);
+    var memberName = info.nickname || info.julehaId || 'Anggota ini';
+
+    var confirmMsg = 'PERINGATAN:\nApakah Anda yakin ingin MENGHAPUS PERMANEN data anggota:\n' + 
+                     memberName + ' (' + info.julehaId + ')?\n\n' +
+                     'Seluruh data terkait (sertifikat, portofolio, pelatihan, dan foto KTA) akan ikut terhapus.\n' +
+                     'Tindakan ini TIDAK DAPAT DIBATALKAN!';
+
+    if (confirm(confirmMsg)) {
+      $.ajax({
+        url: '/members/deletemember',
+        type: 'POST',
+        data: {
+          id: info.id,
+          juleha_id: info.julehaId
+        },
+        dataType: 'json'
+      })
+      .done(function(res){
+        if (res && res.status) {
+          alert('Berhasil: ' + (res.message || 'Data anggota berhasil dihapus.'));
+          location.reload();
+        } else {
+          alert('Gagal: ' + (res.message || 'Tidak dapat menghapus data anggota.'));
+        }
+      })
+      .fail(function(xhr, status, error){
+        alert('Terjadi kesalahan saat memproses penghapusan anggota.');
       });
     }
   });

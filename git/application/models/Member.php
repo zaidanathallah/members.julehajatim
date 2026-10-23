@@ -121,6 +121,39 @@ Class Member extends CI_Model{
                 'password'=>'tik ketemu'    
             );
         }
-        ;
+    }
+
+    function delete_member($id, $juleha_id = null){
+        $ci = & get_instance();
+        $id = (int)$id;
+        if ($id <= 0) {
+            return array('status' => false, 'message' => 'ID anggota tidak valid.');
+        }
+
+        // Hapus relasi sertifikat, portofolio, dan pelatihan
+        $ci->db->where('member_id', $id)->delete('certificates');
+        $ci->db->where('member_id', $id)->delete('portofolio');
+        $ci->db->where('member_id', $id)->delete('trainings');
+
+        // Hapus file foto KTA jika ada
+        if (!empty($juleha_id)) {
+            $cleanJulehaId = preg_replace('/[^A-Za-z0-9_\-]/', '_', $juleha_id);
+            $photoPathJpg = './images/' . $cleanJulehaId . '.jpg';
+            $photoPathPng = './images/' . $cleanJulehaId . '.png';
+            if (file_exists($photoPathJpg)) {
+                @unlink($photoPathJpg);
+            }
+            if (file_exists($photoPathPng)) {
+                @unlink($photoPathPng);
+            }
+        }
+
+        // Hapus data anggota dari tabel members
+        $ci->db->where('id', $id)->delete('members');
+
+        return array(
+            'status' => true,
+            'message' => 'Data anggota berhasil dihapus permanen dari sistem.'
+        );
     }
 }

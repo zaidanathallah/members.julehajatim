@@ -46,8 +46,8 @@
             </a>
           </li>
           <li class="nav-item menu-open">
-            <a href="/members/login" class="nav-link">
-              <i class="nav-icon fas  fa-sign-out-alt"></i> 
+            <a href="/members/logout" class="nav-link">
+              <i class="nav-icon fas fa-sign-out-alt"></i> 
               <p>
                 Keluar
               </p>
