@@ -1,0 +1,6 @@
+.env
+*.sql
+security.md
+vendor/
+node_modules/
+git/
