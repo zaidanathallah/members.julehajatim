@@ -244,10 +244,9 @@ class CI_Xmlrpcs extends CI_Xmlrpc {
 			'method' => ''
 		);
 
-		xml_set_object($parser, $parser_object);
 		xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, TRUE);
-		xml_set_element_handler($parser, 'open_tag', 'closing_tag');
-		xml_set_character_data_handler($parser, 'character_data');
+		xml_set_element_handler($parser, array($parser_object, 'open_tag'), array($parser_object, 'closing_tag'));
+		xml_set_character_data_handler($parser, array($parser_object, 'character_data'));
 		//xml_set_default_handler($parser, 'default_handler');
 
 		//-------------------------------------
@@ -262,7 +261,12 @@ class CI_Xmlrpcs extends CI_Xmlrpc {
 				sprintf('XML error: %s at line %d',
 				xml_error_string(xml_get_error_code($parser)),
 				xml_get_current_line_number($parser)));
-			xml_parser_free($parser);
+			if (is_resource($parser) && function_exists('xml_parser_free'))
+			{
+				$free_parser = 'xml_parser_free';
+				$free_parser($parser);
+			}
+			unset($parser);
 		}
 		elseif ($parser_object->xh[$pname]['isf'])
 		{
@@ -270,7 +274,12 @@ class CI_Xmlrpcs extends CI_Xmlrpc {
 		}
 		else
 		{
-			xml_parser_free($parser);
+			if (is_resource($parser) && function_exists('xml_parser_free'))
+			{
+				$free_parser = 'xml_parser_free';
+				$free_parser($parser);
+			}
+			unset($parser);
 
 			$m = new XML_RPC_Message($parser_object->xh[$pname]['method']);
 			$plist = '';
@@ -550,8 +559,8 @@ class CI_Xmlrpcs extends CI_Xmlrpc {
 	 */
 	public function multicall_error($err)
 	{
-		$str = is_string($err) ? $this->xmlrpcstr["multicall_${err}"] : $err->faultString();
-		$code = is_string($err) ? $this->xmlrpcerr["multicall_${err}"] : $err->faultCode();
+		$str = is_string($err) ? $this->xmlrpcstr['multicall_'.$err] : $err->faultString();
+		$code = is_string($err) ? $this->xmlrpcerr['multicall_'.$err] : $err->faultCode();
 
 		$struct['faultCode'] = new XML_RPC_Values($code, 'int');
 		$struct['faultString'] = new XML_RPC_Values($str, 'string');

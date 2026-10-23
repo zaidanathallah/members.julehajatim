@@ -1162,10 +1162,9 @@ class XML_RPC_Message extends CI_Xmlrpc
 			'isf_reason'	=> 0
 		);
 
-		xml_set_object($parser, $this);
 		xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, TRUE);
-		xml_set_element_handler($parser, 'open_tag', 'closing_tag');
-		xml_set_character_data_handler($parser, 'character_data');
+		xml_set_element_handler($parser, array($this, 'open_tag'), array($this, 'closing_tag'));
+		xml_set_character_data_handler($parser, array($this, 'character_data'));
 		//xml_set_default_handler($parser, 'default_handler');
 
 		// Get headers
@@ -1188,10 +1187,20 @@ class XML_RPC_Message extends CI_Xmlrpc
 						xml_get_current_line_number($parser));
 
 			$r = new XML_RPC_Response(0, $this->xmlrpcerr['invalid_return'], $this->xmlrpcstr['invalid_return']);
-			xml_parser_free($parser);
+			if (is_resource($parser) && function_exists('xml_parser_free'))
+			{
+				$free_parser = 'xml_parser_free';
+				$free_parser($parser);
+			}
+			unset($parser);
 			return $r;
 		}
-		xml_parser_free($parser);
+		if (is_resource($parser) && function_exists('xml_parser_free'))
+		{
+			$free_parser = 'xml_parser_free';
+			$free_parser($parser);
+		}
+		unset($parser);
 
 		// Got ourselves some badness, it seems
 		if ($this->xh[$pname]['isf'] > 1)
@@ -1720,7 +1729,7 @@ class XML_RPC_Values extends CI_Xmlrpc
 
 		if ($typeof != 1)
 		{
-			echo '<strong>XML_RPC_Values</strong>: not a scalar type (${typeof})<br />';
+			echo '<strong>XML_RPC_Values</strong>: not a scalar type ('.$typeof.')<br />';
 			return 0;
 		}
 
