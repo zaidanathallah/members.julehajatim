@@ -1,7 +1,9 @@
 <?php
+#[AllowDynamicProperties]
 Class Members extends CI_Controller{
     function __construct(){
         parent::__construct();
+        $this->load->library('session');
         $this->load->model('member');
         $this->load->model('epiagam');
         $this->load->model('portofolio');
@@ -11,6 +13,31 @@ Class Members extends CI_Controller{
         $this->load->library('julehalibs');
         $this->load->model('region');
     }
+
+    private function ensure_session_started(){
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+    }
+
+    private function get_session_data($key){
+        $this->ensure_session_started();
+        if (!empty($_SESSION[$key])) {
+            return $_SESSION[$key];
+        }
+        if (isset($this->session) && is_object($this->session)) {
+            $val = $this->session->userdata($key);
+            if (!empty($val)) {
+                return $val;
+            }
+        }
+        return null;
+    }
+
+    private function is_logged_in(){
+        return !empty($this->get_session_data('juleha_id'));
+    }
+
     function getmax(){
         $region = $this->uri->segment(3);
         $max = $this->member->getmax($region);
@@ -18,11 +45,7 @@ Class Members extends CI_Controller{
     }
     
     public function uploder(){
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        $isLoggedIn = !empty($_SESSION['juleha_id']) || !empty($this->session->userdata('juleha_id'));
-        if (!$isLoggedIn) {
+        if (!$this->is_logged_in()) {
             redirect('/members/login');
             return;
         }
@@ -31,18 +54,14 @@ Class Members extends CI_Controller{
     }
 
     public function upload_foto_kta(){
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        $isLoggedIn = !empty($_SESSION['juleha_id']) || !empty($this->session->userdata('juleha_id'));
-        if (!$isLoggedIn) {
+        if (!$this->is_logged_in()) {
             redirect('/members/login');
             return;
         }
 
         $customName = $this->input->post('custom_name', TRUE);
         if (empty($customName)) {
-            $customName = !empty($_SESSION['juleha_id']) ? $_SESSION['juleha_id'] : $this->session->userdata('juleha_id');
+            $customName = $this->get_session_data('juleha_id');
         }
         $customName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $customName);
 
@@ -98,14 +117,11 @@ Class Members extends CI_Controller{
         $this->upload_foto_kta();
     }
     function edit(){
-        $objs = $this->member->get($this->uri->segment(3));
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (empty($_SESSION['juleha_id']) && !$this->session->userdata('juleha_id')) {
+        if (!$this->is_logged_in()) {
             redirect('/members/login');
             return;
         }
+        $objs = $this->member->get($this->uri->segment(3));
         $regions = $this->region->gets();
         $data = array(
             'objs'=>$objs['res'],
@@ -119,14 +135,11 @@ Class Members extends CI_Controller{
         echo sha1($this->uri->segment(3));
     }
     function index(){
-        $objs = $this->member->gets();
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (empty($_SESSION['juleha_id']) && !$this->session->userdata('juleha_id')) {
+        if (!$this->is_logged_in()) {
             redirect('/members/login');
             return;
         }
+        $objs = $this->member->gets();
         $regions = $this->region->gets();
         $data = array(
             'objs'=>$objs['res'],
@@ -140,49 +153,57 @@ Class Members extends CI_Controller{
         $this->load->view('members/login');
     }
     function loginhandler0(){
-    // 1. Pastikan session sudah diinisialisasi dengan benar (biasanya otomatis di autoload)
-    // session_start(); // Sebaiknya gunakan session bawaan framework
+        $juleha_id = $this->input->post('juleha_id', TRUE);
+        $password = $this->input->post('password');
 
-    // 2. Ambil data input
-    $juleha_id = $this->input->post('juleha_id', TRUE); // TRUE untuk mengaktifkan filter XSS dasar
-    $password = $this->input->post('password');
+        if (empty($juleha_id) || empty($password)) {
+            redirect('/members/login');
+            return;
+        }
 
-    // Validasi input kosong
-    if (empty($juleha_id) || empty($password)) {
-        redirect('/members/login');
+        $memberdata = $this->member->getpassword($juleha_id);
+
+        if ($memberdata && password_verify($password, $memberdata['password'])) {
+            $this->ensure_session_started();
+            @session_regenerate_id(true);
+
+            $session_data = [
+                'juleha_id'   => $juleha_id,
+                'id'          => $memberdata['id'],
+                'memberlevel' => $memberdata['memberlevel'],
+                'logged_in'   => TRUE
+            ];
+            
+            $_SESSION['juleha_id'] = $juleha_id;
+            $_SESSION['id'] = $memberdata['id'];
+            $_SESSION['memberlevel'] = $memberdata['memberlevel'];
+            if (isset($this->session) && is_object($this->session)) {
+                $this->session->set_userdata($session_data);
+            }
+            redirect('/members/profile');
+        } else {
+            redirect('/members/login');
+        }
     }
-
-    // 3. Ambil data member berdasarkan ID (Pastikan di dalam model menggunakan prepared statements)
-    $memberdata = $this->member->getpassword($juleha_id);
-
-    // 4. Verifikasi password menggunakan password_verify() (Asumsi password di DB di-hash dengan password_hash)
-    if ($memberdata && password_verify($password, $memberdata['password'])) {
-        
-        // 5. Regenerasi ID session untuk mencegah Session Fixation
-        session_regenerate_id(true);
-
-        $session_data = [
-            'juleha_id'   => $juleha_id,
-            'id'          => $memberdata['id'],
-            'memberlevel' => $memberdata['memberlevel'],
-            'logged_in'   => TRUE
-        ];
-        
-        $this->session->set_userdata($session_data); // Menggunakan Session Library Framework
-        redirect('/members/profile');
-    } else {
-        // Gagal login
-        redirect('/members/login');
-    }
-}
     function loginhandler(){
-        session_start();
+        $this->ensure_session_started();
         $params = $this->input->post();
+        if (empty($params['juleha_id']) || empty($params['password'])) {
+            redirect('/members/login');
+            return;
+        }
         $gpw = $this->member->getpassword($params['juleha_id']);
-        if($gpw['password']===sha1($params['password'])){
+        if($gpw && isset($gpw['password']) && $gpw['password']===sha1($params['password'])){
             $_SESSION['juleha_id'] = $params['juleha_id'];
             $_SESSION['id'] = $gpw['id'];
             $_SESSION['memberlevel'] = $gpw['memberlevel'];
+            if (isset($this->session) && is_object($this->session)) {
+                $this->session->set_userdata([
+                    'juleha_id'   => $params['juleha_id'],
+                    'id'          => $gpw['id'],
+                    'memberlevel' => $gpw['memberlevel']
+                ]);
+            }
             redirect('/members/profile');
         }else{
             redirect('/members/login');
@@ -193,40 +214,73 @@ Class Members extends CI_Controller{
         header("Access-Control-Allow-Methods: PUT, GET, POST, DELETE");
         header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept"); 
 
+        $this->ensure_session_started();
         $params = $this->input->post();
-        $gpw = $this->member->getpassword($params['juleha_id']);
-        if($gpw['password']===sha1($params['password'])){
-            $this->session->set_userdata('juleha_id',$params['juleha_id'])  ;
-            $this->session->set_userdata('id',$gpw['id']) ;
-            $this->session->set_userdata('memberlevel',$gpw['memberlevel'])  ;
-            echo json_encode(array("result"=>true));
-        }else{
-            echo json_encode(array("result"=>false));
+        if (!empty($params['juleha_id']) && !empty($params['password'])) {
+            $gpw = $this->member->getpassword($params['juleha_id']);
+            if($gpw && isset($gpw['password']) && $gpw['password']===sha1($params['password'])){
+                $_SESSION['juleha_id'] = $params['juleha_id'];
+                $_SESSION['id'] = $gpw['id'];
+                $_SESSION['memberlevel'] = $gpw['memberlevel'];
+                if (isset($this->session) && is_object($this->session)) {
+                    $this->session->set_userdata([
+                        'juleha_id'   => $params['juleha_id'],
+                        'id'          => $gpw['id'],
+                        'memberlevel' => $gpw['memberlevel']
+                    ]);
+                }
+                echo json_encode(array("result"=>true));
+                return;
+            }
         }
+        echo json_encode(array("result"=>false));
     }
     function authhandler(){
         header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Methods: PUT, GET, POST, DELETE");
         header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept"); 
 
+        $this->ensure_session_started();
         $params = $this->input->post();
-        $gpw = $this->member->getpassword($params['juleha_id']);
-        if($gpw['password']===sha1($params['password'])){
-            $_SESSION['juleha_id'] = $params['juleha_id']  ;
-            $_SESSION['id']= $gpw['id'] ;
-            $_SESSION['memberlevel'] = $gpw['memberlevel']  ;
-            echo json_encode(array("result"=>true));
-        }else{
-            echo json_encode(array("result"=>false));
+        if (!empty($params['juleha_id']) && !empty($params['password'])) {
+            $gpw = $this->member->getpassword($params['juleha_id']);
+            if($gpw && isset($gpw['password']) && $gpw['password']===sha1($params['password'])){
+                $_SESSION['juleha_id'] = $params['juleha_id'];
+                $_SESSION['id']= $gpw['id'];
+                $_SESSION['memberlevel'] = $gpw['memberlevel'];
+                if (isset($this->session) && is_object($this->session)) {
+                    $this->session->set_userdata([
+                        'juleha_id'   => $params['juleha_id'],
+                        'id'          => $gpw['id'],
+                        'memberlevel' => $gpw['memberlevel']
+                    ]);
+                }
+                echo json_encode(array("result"=>true));
+                return;
+            }
         }
+        echo json_encode(array("result"=>false));
+    }
+
+    public function logout(){
+        $this->ensure_session_started();
+        $_SESSION = [];
+        if (session_id()) {
+            @session_destroy();
+        }
+        if (isset($this->session) && is_object($this->session)) {
+            $this->session->sess_destroy();
+        }
+        redirect('/members/login');
     }
 
     function profile(){
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        if (!$this->is_logged_in()) {
+            redirect('/members/login');
+            return;
         }
-        $memberId = !empty($_SESSION['id']) ? $_SESSION['id'] : $this->session->userdata('id');
-        $julehaId = !empty($_SESSION['juleha_id']) ? $_SESSION['juleha_id'] : $this->session->userdata('juleha_id');
+        $memberId = $this->get_session_data('id');
+        $julehaId = $this->get_session_data('juleha_id');
         if ($memberId) {
             $obj = $this->member->get($julehaId);
             $data = array(
