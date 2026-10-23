@@ -37,11 +37,13 @@
   }
   .dropdown-menu {
     border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-    border: 1px solid #e2e8f0;
-    min-width: 210px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2) !important;
+    border: 1px solid #cbd5e1;
+    min-width: 215px;
     padding: 6px 0;
-    z-index: 1060;
+    z-index: 999999 !important;
+    max-height: 85vh;
+    overflow-y: auto;
   }
   .dropdown-item {
     font-size: 0.88rem;
@@ -286,7 +288,7 @@
                       </td>
                       <td class="text-center">
                         <div class="btn-group">
-                          <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle btn-action-mobile" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle btn-action-mobile" data-toggle="dropdown" data-boundary="window" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-cog mr-1"></i> Opsi
                           </button>
                           <div class="dropdown-menu dropdown-menu-right shadow" role="menu">
@@ -382,18 +384,27 @@
 
     if (!id || !julehaId) {
       var $row = $el.closest('tr');
+      if ($row.length === 0 && window.$lastActiveBtnGroup) {
+        $row = window.$lastActiveBtnGroup.closest('tr');
+      }
       if ($row.hasClass('child')) {
         $row = $row.prev('tr');
       }
-      id = $row.attr('id') || $row.data('id');
-      julehaId = $row.find('.juleha_id').text().trim() || $row.data('juleha-id');
-      nickname = $row.find('td:eq(1)').text().trim() || $row.data('nickname');
+      id = id || $row.attr('id') || $row.data('id');
+      julehaId = julehaId || $row.find('.juleha_id').text().trim() || $row.data('juleha-id');
+      nickname = nickname || $row.find('td:eq(1)').text().trim() || $row.data('nickname');
     }
     return { id: id, julehaId: julehaId, nickname: nickname };
   }
 
+  // Konfigurasi Bootstrap Popper agar dropdown tabel tidak terpotong (unclipped)
+  if ($.fn.dropdown && $.fn.dropdown.Constructor && $.fn.dropdown.Constructor.Default) {
+    $.fn.dropdown.Constructor.Default.boundary = 'window';
+    $.fn.dropdown.Constructor.Default.popperConfig = { positionFixed: true };
+  }
+
   // 1. Tambah Sertifikat
-  $('#example2').on('click', '.addCertificate', function(e){
+  $(document).on('click', '.addCertificate', function(e){
     e.preventDefault();
     var info = extractRowMember(this);
     $('#cert_member_id').val(info.id);
@@ -403,7 +414,7 @@
   });
 
   // 2. Tambah Portofolio
-  $('#example2').on('click', '.addPortofolio', function(e){
+  $(document).on('click', '.addPortofolio', function(e){
     e.preventDefault();
     var info = extractRowMember(this);
     $('#porto_member_id').val(info.id);
@@ -413,7 +424,7 @@
   });
 
   // 3. Tambah Pelatihan
-  $('#example2').on('click', '.addTraining', function(e){
+  $(document).on('click', '.addTraining', function(e){
     e.preventDefault();
     var info = extractRowMember(this);
     $('#training_member_id').val(info.id);
@@ -424,7 +435,7 @@
   });
 
   // 4. Ubah Password
-  $('#example2').on('click', '.btneditpassword', function(e){
+  $(document).on('click', '.btneditpassword', function(e){
     e.preventDefault();
     var info = extractRowMember(this);
     $('#txtEditPasswordMemberId').val(info.id);
@@ -436,7 +447,7 @@
   });
 
   // 5. Edit Data Anggota
-  $('#example2').on('click', '.edit', function(e){
+  $(document).on('click', '.edit', function(e){
     e.preventDefault();
     var info = extractRowMember(this);
     if (!info.julehaId) {
@@ -476,7 +487,7 @@
   });
 
   // 6. Toggle Status Aktif / Non-Aktif
-  $('#example2').on('click', '.toggleStatus', function(e){
+  $(document).on('click', '.toggleStatus', function(e){
     e.preventDefault();
     var info = extractRowMember(this);
     var targetStatus = $(this).data('status');
@@ -506,7 +517,7 @@
   });
 
   // 7. Hapus Data Anggota Permanen (Khusus Admin)
-  $('#example2').on('click', '.btn-delete-member', function(e){
+  $(document).on('click', '.btn-delete-member', function(e){
     e.preventDefault();
     var info = extractRowMember(this);
     var memberName = info.nickname || info.julehaId || 'Anggota ini';
