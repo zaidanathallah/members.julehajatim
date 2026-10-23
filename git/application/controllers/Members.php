@@ -3,6 +3,7 @@
 Class Members extends CI_Controller{
     function __construct(){
         parent::__construct();
+        date_default_timezone_set('Asia/Jakarta');
         $this->load->library('session');
         $this->load->model('member');
         $this->load->model('epiagam');
@@ -221,14 +222,22 @@ Class Members extends CI_Controller{
             return;
         }
 
+        date_default_timezone_set('Asia/Jakarta');
         $analytics = $this->member->get_analytics_data();
 
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $formattedDate = (int)date('d') . ' ' . $bulanIndo[(int)date('m')] . ' ' . date('Y') . ', ' . date('H:i:s') . ' WIB';
+
         $data = array(
-            'title' => 'Laporan Analisis & Statistik Keanggotaan DPW Juleha Jawa Timur',
+            'title' => 'Laporan Analisis & Statistik Keanggotaan Juleha Jawa Timur',
             'summary' => $analytics['summary'],
             'top_regions' => $analytics['top_regions'],
             'all_regions' => $analytics['all_regions'],
-            'generate_date' => date('d F Y, H:i') . ' WIB'
+            'generate_date' => $formattedDate
         );
 
         $this->load->view('members/laporan_analisis_pdf', $data);

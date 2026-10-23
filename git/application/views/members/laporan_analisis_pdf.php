@@ -58,22 +58,22 @@
       padding: 0 15px;
     }
 
+    .kop-text h1 {
+      font-size: 19pt;
+      font-weight: 800;
+      color: #064e3b;
+      margin: 0 0 2px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     .kop-text h2 {
       font-size: 15pt;
       font-weight: 700;
-      color: #064e3b;
-      margin: 0 0 2px 0;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-
-    .kop-text h1 {
-      font-size: 18pt;
-      font-weight: 800;
       color: #059669;
       margin: 0 0 4px 0;
-      text-transform: uppercase;
       letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
     .kop-text p {
@@ -202,29 +202,26 @@
       font-weight: 600;
     }
 
-    /* SIGNATURE BLOCK */
-    .signature-section {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 40px;
+    /* FOOTER NOTE */
+    .report-footer-note {
+      margin-top: 25px;
+      padding-top: 14px;
+      border-top: 1px dashed #cbd5e1;
+      text-align: center;
       page-break-inside: avoid;
     }
 
-    .signature-col {
-      width: 250px;
-      text-align: center;
-      font-size: 9.5pt;
+    .report-footer-note p {
+      font-size: 8.5pt;
+      color: #64748b;
+      margin: 0;
+      line-height: 1.5;
     }
 
-    .signature-space {
-      height: 70px;
-    }
-
-    .signature-name {
-      font-weight: 700;
-      text-decoration: underline;
-      color: #0f172a;
-      margin-bottom: 2px;
+    .report-footer-note a {
+      color: #059669;
+      text-decoration: none;
+      font-weight: 600;
     }
 
     /* FLOATING ACTION BAR */
@@ -308,12 +305,11 @@
     <div class="kop-surat">
       <img src="/assets/juleha/logo.png" alt="Logo Juleha Jatim" class="kop-logo" onerror="this.onerror=null;this.src='/assets/juleha/julehajatim72.png';">
       <div class="kop-text">
-        <h2>Dewan Pengurus Wilayah</h2>
         <h1>Juru Sembelih Halal (Juleha)</h1>
+        <h2>Jawa Timur</h2>
         <p>
-          <strong>PROVINSI JAWA TIMUR</strong><br>
-          Sekretariat: Jawa Timur | Website: members.julehajatim.com<br>
-          Email: info@julehajatim.com | Layanan Keanggotaan Terpadu
+          Sistem Informasi Manajemen Keanggotaan Terpadu Juleha Jawa Timur<br>
+          Website: members.julehajatim.com | Layanan Keanggotaan Terpadu
         </p>
       </div>
       <img src="/assets/juleha/logo.png" alt="Logo Juleha" class="kop-logo" style="visibility: hidden;">
@@ -323,7 +319,7 @@
     <div class="report-title-box">
       <h3 class="report-title">Laporan Analisis & Statistik Data Keanggotaan</h3>
       <p class="report-subtitle">
-        Tanggal Dicetak: <strong><?php echo htmlspecialchars($generate_date); ?></strong> | Status Data: <em>Real-Time Database</em>
+        Tanggal Dicetak: <strong id="printDateTime"><?php echo htmlspecialchars($generate_date); ?></strong> | Status Data: <em>Real-Time Database</em>
       </p>
     </div>
 
@@ -432,24 +428,47 @@
       </tfoot>
     </table>
 
-    <!-- 4. PENGESAHAN DOKUMEN -->
-    <div class="signature-section">
-      <div class="signature-col">
-        <p>Mengetahui,<br><strong>Sekretaris DPW Juleha Jatim</strong></p>
-        <div class="signature-space"></div>
-        <p class="signature-name">( Pengurus Wilayah )</p>
-        <small style="color: #64748b;">NID. Juleha Jatim</small>
-      </div>
-
-      <div class="signature-col">
-        <p>Jawa Timur, <?php echo date('d F Y'); ?><br><strong>Ketua DPW Juleha Jatim</strong></p>
-        <div class="signature-space"></div>
-        <p class="signature-name">H. IMAM FAUZI, S.T.</p>
-        <small style="color: #64748b;">Ketua DPW Juleha Jawa Timur</small>
-      </div>
+    <!-- CATATAN DOKUMEN OTOMATIS -->
+    <div class="report-footer-note">
+      <p>
+        Dokumen Laporan Analisis &amp; Statistik Data Keanggotaan ini digenerate secara otomatis oleh Sistem Keanggotaan Juleha Jawa Timur (<a href="https://members.julehajatim.com">members.julehajatim.com</a>) dan sah sebagai dokumen rekapitulasi data resmi tanpa tanda tangan basah.
+      </p>
     </div>
 
   </div>
 
+  <script>
+    // Realtime date and clock updater to ensure exact local time to the second
+    function updateRealtimePrintDate() {
+      try {
+        var now = new Date();
+        var months = [
+          'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+          'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+        var day = now.getDate();
+        var month = months[now.getMonth()];
+        var year = now.getFullYear();
+        var hours = String(now.getHours()).padStart(2, '0');
+        var minutes = String(now.getMinutes()).padStart(2, '0');
+        var seconds = String(now.getSeconds()).padStart(2, '0');
+        
+        var formatted = day + ' ' + month + ' ' + year + ', ' + hours + ':' + minutes + ':' + seconds + ' WIB';
+        var el = document.getElementById('printDateTime');
+        if (el) {
+          el.textContent = formatted;
+        }
+      } catch (err) {
+        console.error('Error updating print date:', err);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', updateRealtimePrintDate);
+    } else {
+      updateRealtimePrintDate();
+    }
+    window.addEventListener('beforeprint', updateRealtimePrintDate);
+  </script>
 </body>
 </html>
