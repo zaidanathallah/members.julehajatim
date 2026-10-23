@@ -291,7 +291,7 @@
                       </td>
                       <td class="text-center">
                         <div class="d-flex align-items-center justify-content-center">
-                          <div class="progress flex-grow-1 mr-2" style="height: 6px; max-width: 90px; border-radius: 4px;">
+                          <div class="progress mr-2" style="flex-grow: 1; height: 6px; max-width: 90px; border-radius: 4px;">
                             <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $ratio; ?>%;"></div>
                           </div>
                           <span class="badge-percent bg-light border text-muted"><?php echo $ratio; ?>%</span>
