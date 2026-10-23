@@ -195,6 +195,45 @@ Class Members extends CI_Controller{
         );
         $this->load->view('members/all',$data);
     }
+
+    public function analisis(){
+        if (!$this->is_logged_in()) {
+            redirect('/members/login');
+            return;
+        }
+
+        $analytics = $this->member->get_analytics_data();
+
+        $data = array(
+            'title' => 'Analisis & Statistik Keanggotaan Juleha Jawa Timur',
+            'active' => array('list' => '', 'profile' => '', 'analisis' => 'active'),
+            'summary' => $analytics['summary'],
+            'top_regions' => $analytics['top_regions'],
+            'all_regions' => $analytics['all_regions']
+        );
+
+        $this->load->view('members/analisis', $data);
+    }
+
+    public function cetak_analisis(){
+        if (!$this->is_logged_in()) {
+            redirect('/members/login');
+            return;
+        }
+
+        $analytics = $this->member->get_analytics_data();
+
+        $data = array(
+            'title' => 'Laporan Analisis & Statistik Keanggotaan DPW Juleha Jawa Timur',
+            'summary' => $analytics['summary'],
+            'top_regions' => $analytics['top_regions'],
+            'all_regions' => $analytics['all_regions'],
+            'generate_date' => date('d F Y, H:i') . ' WIB'
+        );
+
+        $this->load->view('members/laporan_analisis_pdf', $data);
+    }
+
     function login(){
         $this->ensure_session_started();
         $data = array(

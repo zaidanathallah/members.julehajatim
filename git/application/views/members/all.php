@@ -186,9 +186,14 @@
     </ul>
 
     <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto">
+    <ul class="navbar-nav ml-auto d-flex flex-row align-items-center">
+      <li class="nav-item mr-2">
+        <a href="/members/analisis" class="btn btn-outline-info btn-sm rounded shadow-sm font-weight-bold px-2 px-md-3">
+          <i class="fas fa-chart-pie mr-1"></i> Analisis Data
+        </a>
+      </li>
       <li class="nav-item">
-        <button class="btn btn-primary btn-sm rounded shadow-sm font-weight-bold px-3" data-toggle="modal" data-target="#modal-lg">
+        <button class="btn btn-primary btn-sm rounded shadow-sm font-weight-bold px-2 px-md-3" data-toggle="modal" data-target="#modal-lg">
           <i class="fas fa-user-plus mr-1"></i> + Tambah Anggota
         </button>
       </li>

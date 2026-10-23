@@ -21,10 +21,18 @@
                with font-awesome or any other icon font library -->
             <?php if($_SESSION['memberlevel']<2){?>
             <li class="nav-item menu-open">
-            <a href="/members/index" class="nav-link  <?php echo $active['list'];?>">
+            <a href="/members/index" class="nav-link <?php echo ($active['list'] ?? '');?>">
               <i class="nav-icon fas fa-table"></i>
               <p>
                 Daftar Anggota
+              </p>
+            </a>
+          </li>
+          <li class="nav-item menu-open">
+            <a href="/members/analisis" class="nav-link <?php echo ($active['analisis'] ?? '');?>">
+              <i class="nav-icon fas fa-chart-pie"></i>
+              <p>
+                Analisis Keanggotaan
               </p>
             </a>
           </li>

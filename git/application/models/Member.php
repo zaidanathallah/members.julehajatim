@@ -156,4 +156,59 @@ Class Member extends CI_Model{
             'message' => 'Data anggota berhasil dihapus permanen dari sistem.'
         );
     }
+
+    function get_analytics_data(){
+        $ci = & get_instance();
+
+        // 1. Ringkasan Status Keanggotaan
+        $sqlSummary = "SELECT 
+            COUNT(*) as total_members,
+            SUM(CASE WHEN LOWER(TRIM(mstatus)) = '1' OR LOWER(TRIM(mstatus)) = 'aktif' THEN 1 ELSE 0 END) as total_active,
+            SUM(CASE WHEN LOWER(TRIM(mstatus)) != '1' AND LOWER(TRIM(mstatus)) != 'aktif' THEN 1 ELSE 0 END) as total_inactive
+        FROM members";
+        $summaryRes = $ci->db->query($sqlSummary)->row_array();
+
+        $totalMembers = (int)($summaryRes['total_members'] ?? 0);
+        $totalActive = (int)($summaryRes['total_active'] ?? 0);
+        $totalInactive = (int)($summaryRes['total_inactive'] ?? 0);
+
+        $pctActive = $totalMembers > 0 ? round(($totalActive / $totalMembers) * 100, 1) : 0;
+        $pctInactive = $totalMembers > 0 ? round(($totalInactive / $totalMembers) * 100, 1) : 0;
+
+        // 2. Ringkasan Kompetensi (Sertifikat, Portofolio, Pelatihan)
+        $certCount = (int)$ci->db->count_all('certificates');
+        $portoCount = (int)$ci->db->count_all('portofolio');
+        $trainCount = (int)$ci->db->count_all('trainings');
+
+        // 3. Rekapitulasi per Daerah / Wilayah (dengan Nama Daerah Resmi dari tabel regions)
+        $sqlRegions = "SELECT 
+            UPPER(TRIM(COALESCE(m.region, 'LAIN'))) as region_code,
+            COALESCE(r.name, m.region, 'Wilayah Lainnya') as region_name,
+            COUNT(m.id) as total,
+            SUM(CASE WHEN LOWER(TRIM(m.mstatus)) = '1' OR LOWER(TRIM(m.mstatus)) = 'aktif' THEN 1 ELSE 0 END) as active_count,
+            SUM(CASE WHEN LOWER(TRIM(m.mstatus)) != '1' AND LOWER(TRIM(m.mstatus)) != 'aktif' THEN 1 ELSE 0 END) as inactive_count
+        FROM members m
+        LEFT JOIN regions r ON UPPER(TRIM(m.region)) = UPPER(TRIM(r.initial))
+        GROUP BY region_code, region_name
+        ORDER BY total DESC";
+        $allRegions = $ci->db->query($sqlRegions)->result_array();
+
+        // 4. Top 10 Daerah dengan Anggota Terbanyak
+        $topRegions = array_slice($allRegions, 0, 10);
+
+        return array(
+            'summary' => array(
+                'total' => $totalMembers,
+                'active' => $totalActive,
+                'inactive' => $totalInactive,
+                'pct_active' => $pctActive,
+                'pct_inactive' => $pctInactive,
+                'certificates' => $certCount,
+                'portofolio' => $portoCount,
+                'trainings' => $trainCount
+            ),
+            'top_regions' => $topRegions,
+            'all_regions' => $allRegions
+        );
+    }
 }
