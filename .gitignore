@@ -3,4 +3,7 @@
 security.md
 vendor/
 node_modules/
-git/
+git/images/
+images/
+error_log
+*.log
