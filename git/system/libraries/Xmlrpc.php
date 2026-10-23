@@ -219,9 +219,9 @@ class CI_Xmlrpc {
 	/**
 	 * XML-RPC Message
 	 *
-	 * @var	string
+	 * @var	XML_RPC_Message
 	 */
-	public $message			= '';
+	public $message;
 
 	/**
 	 * Request error message
@@ -489,9 +489,10 @@ class CI_Xmlrpc {
 		$this->message = new XML_RPC_Message($this->method, $this->data);
 		$this->message->debug = $this->debug;
 
-		if ( ! $this->result = $this->client->send($this->message) OR ! is_object($this->result->val))
+		$this->result = $this->client->send($this->message);
+		if ( ! is_object($this->result) OR ! is_object($this->result->val))
 		{
-			$this->error = $this->result->errstr;
+			$this->error = is_object($this->result) ? $this->result->errstr : 'Unknown error';
 			return FALSE;
 		}
 
@@ -516,7 +517,7 @@ class CI_Xmlrpc {
 	/**
 	 * Returns Remote Server Response
 	 *
-	 * @return	string
+	 * @return	mixed
 	 */
 	public function display_response()
 	{
@@ -966,7 +967,7 @@ class XML_RPC_Response
 	 * XML-RPC Object to PHP Types
 	 *
 	 * @param	object
-	 * @return	array
+	 * @return	mixed
 	 */
 	public function xmlrpc_decoder($xmlrpc_val)
 	{
@@ -1000,6 +1001,8 @@ class XML_RPC_Response
 
 			return $arr;
 		}
+
+		return NULL;
 	}
 
 	// --------------------------------------------------------------------
@@ -1923,7 +1926,7 @@ class XML_RPC_Values extends CI_Xmlrpc
 	*/
 	public function iso8601_encode($time, $utc = FALSE)
 	{
-		return ($utc) ? strftime('%Y%m%dT%H:%i:%s', $time) : gmstrftime('%Y%m%dT%H:%i:%s', $time);
+		return ($utc === TRUE) ? gmdate('Ymd\TH:i:s', $time) : date('Ymd\TH:i:s', $time);
 	}
 
 } // END XML_RPC_Values Class
