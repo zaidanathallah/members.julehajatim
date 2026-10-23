@@ -3,28 +3,31 @@
 <?php $this->load->view('common/head');?>
 <style>
   /* Responsive Table & UI Tuning */
-  .table-responsive {
-    border-radius: 8px;
-    overflow-x: auto;
+  .dataTables_wrapper {
+    width: 100%;
+    position: relative;
+    clear: both;
+  }
+  .dataTables_scrollBody {
     -webkit-overflow-scrolling: touch;
   }
-  .table thead th {
+  #example2 th, #example2 td {
+    white-space: nowrap;
     vertical-align: middle;
+  }
+  .table thead th {
     font-size: 0.9rem;
     font-weight: 600;
     background-color: #f8fafc;
-    white-space: nowrap;
   }
   .table tbody td {
-    vertical-align: middle;
     font-size: 0.88rem;
   }
   .dt-buttons .btn {
     font-size: 0.82rem;
-    padding: 0.28rem 0.65rem;
+    padding: 0.32rem 0.65rem;
     border-radius: 6px;
-    margin-right: 4px;
-    margin-bottom: 6px;
+    font-weight: 500;
   }
   .dataTables_filter input {
     border-radius: 6px;
@@ -38,6 +41,7 @@
     border: 1px solid #e2e8f0;
     min-width: 210px;
     padding: 6px 0;
+    z-index: 1060;
   }
   .dropdown-item {
     font-size: 0.88rem;
@@ -59,16 +63,28 @@
       font-size: 1.35rem;
     }
     .dt-buttons {
-      width: 100%;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 4px;
       margin-bottom: 10px;
+      width: 100%;
+    }
+    .dt-buttons .btn {
+      flex: 1 1 30%;
+      text-align: center;
+      margin: 0 !important;
+      font-size: 0.78rem;
+      padding: 6px 4px;
     }
     .dataTables_filter {
       text-align: left !important;
       margin-top: 6px;
+      width: 100%;
     }
     .dataTables_filter input {
       width: 100% !important;
       max-width: 100%;
+      margin-left: 0 !important;
     }
     .btn-action-mobile {
       padding: 4px 8px;
@@ -137,10 +153,11 @@
                   <i class="fas fa-users mr-1 text-primary"></i> Data Keanggotaan Juru Sembelih Halal Jawa Timur
                 </h3>
               </div>
-              <!-- /.card-header -->
               <div class="card-body">
-                <div class="table-responsive">
-                  <table id="example2" class="table table-bordered table-hover w-100">
+                <div class="d-block d-md-none alert alert-light border py-2 px-3 mb-3 text-muted" style="font-size: 0.82rem; border-radius: 8px;">
+                  <i class="fas fa-arrows-alt-h text-primary mr-1"></i> <strong>Mode HP:</strong> Geser tabel ke samping untuk melihat seluruh kolom (Status, Sertifikat, Pelatihan, & Opsi Aksi).
+                </div>
+                <table id="example2" class="table table-bordered table-hover w-100">
                     <thead>
                     <tr>
                       <th>ID Juleha</th>
@@ -240,7 +257,6 @@
                     <?php }?>
                     </tbody>
                   </table>
-                </div>
               </div>
               <!-- /.card-body -->
             </div>

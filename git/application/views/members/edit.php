@@ -1,128 +1,143 @@
-<div class="modal fade" id="edit-modal-lg">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h4 class="modal-title">Edit Anggota</h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p>
-            <div class="container-fluid">
-              <div class="row">
-                <!-- left column -->
-                <div class="col-md-12">
-                  <!-- general form elements -->
-                  <div class="card card-primary">
-                    <!-- /.card-header -->
-                    <!-- form start -->
-                      <div class="card-body">
-                      <div class="form-group">
-                          <label for="exampleInputEmail1">ID Juleha</label>
-                          <input type="text" class="form-control" disabled="disabled" id="txteditJulehaId" placeholder="ID Juleha">
-                        </div>
-                        <div class="form-group">
-                          <label for="exampleInputEmail1">Nama Panggilan</label>
-                          <input type="text" class="form-control" id="txteditNickName" placeholder="Nama Panggilan">
-                        </div>
-                        <div class="form-group">
-                          <label for="exampleInputPassword1">Nama Pertama</label>
-                          <input type="text" class="form-control" id="txteditFirstName" placeholder="Nama Pertama">
-                        </div>
-                        <div class="form-group">
-                          <label for="exampleInputPassword1">Nama Akhir</label>
-                          <input type="text" class="form-control" id="txteditLastName" placeholder="Nama Akhir">
-                        </div>
-                        <div class="form-group">
-                          <label for="exampleInputEmail1">Alamat</label>
-                          <input type="text" class="form-control" id="txteditAddress" placeholder="Alamat">
-                        </div>
-                        <div class="form-group">
-                          <label for="exampleInputEmail1">Kab/Kota</label>
-                          <?php echo form_dropdown("region",$region,"1","id=cmbeditRegion");?>
-                        </div>
-                        <div class="form-group" style="display:none">
-                          <label for="exampleInputFile">File input</label>
-                          <img src="" alt="" id="editimg">
-                          <div class="input-group">
-                            <div class="custom-file">
-                              <input type="file" class="custom-file-input" id="exampleeditInputFile">
-                              <label class="custom-file-label" for="exampleInputFile">Choose file</label>
-                            </div>
-                            <div class="input-group-append">
-                              <span class="input-group-text">Upload</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <!-- /.card-body -->
-                  </div>
-                  <!-- /.card -->
+<div class="modal fade" id="edit-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow border-0" style="border-radius: 14px; overflow: hidden;">
+      
+      <!-- Modal Header -->
+      <div class="modal-header bg-warning text-dark py-3">
+        <h5 class="modal-title font-weight-bold">
+          <i class="fas fa-user-edit mr-2"></i>Edit Data Anggota Juleha
+        </h5>
+        <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
 
-                </div>
-                <!--/.col (left) -->
-                <!-- right column -->
-                <!--/.col (right) -->
+      <!-- Modal Body -->
+      <div class="modal-body p-4 bg-white">
+        <form id="formEditMember">
+          <div class="row">
+            
+            <!-- Kolom Kiri: Akun & Penomoran -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="font-weight-bold text-dark">
+                  <i class="fas fa-id-badge text-primary mr-1"></i> Nomor ID Juleha
+                </label>
+                <input type="text" class="form-control font-weight-bold bg-light" id="txteditJulehaId" readonly>
+                <small class="form-text text-muted">ID Juleha bersifat permanen sebagai identitas anggota</small>
               </div>
-              <!-- /.row -->
-            </div><!-- /.container-fluid -->
-            </p>
-        </div>
-        <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
-            <button type="button" class="btn btn-primary" id="btnUpdate">Update</button>
-        </div>
-        </div>
-        <!-- /.modal-content -->
+
+              <div class="form-group">
+                <label class="font-weight-bold text-dark">
+                  <i class="fas fa-map-marker-alt text-danger mr-1"></i> Wilayah Kab / Kota <span class="text-danger">*</span>
+                </label>
+                <select id="cmbeditRegion" class="form-control custom-select">
+                  <?php foreach($region as $k => $v): ?>
+                    <option value="<?php echo htmlspecialchars($k, ENT_QUOTES, 'UTF-8'); ?>">
+                      <?php echo htmlspecialchars($v, ENT_QUOTES, 'UTF-8'); ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="font-weight-bold text-dark">
+                  <i class="fas fa-user-tag text-info mr-1"></i> Jenis Keanggotaan
+                </label>
+                <select id="cmbeditRole" class="form-control custom-select">
+                  <option value="Anggota">Anggota</option>
+                  <option value="Pengurus">Pengurus</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Kolom Kanan: Identitas & Alamat -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="font-weight-bold text-dark">
+                  <i class="fas fa-user text-success mr-1"></i> Nama Panggilan (Untuk KTA) <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control font-weight-bold" id="txteditNickName" placeholder="Contoh: Arif Hermanto" required>
+                <small class="form-text text-muted">Nama yang dicetak di Kartu Tanda Anggota</small>
+              </div>
+
+              <div class="form-row">
+                <div class="col-6 form-group">
+                  <label class="font-weight-bold text-dark">Nama Depan</label>
+                  <input type="text" class="form-control" id="txteditFirstName" placeholder="Nama Depan">
+                </div>
+                <div class="col-6 form-group">
+                  <label class="font-weight-bold text-dark">Nama Belakang</label>
+                  <input type="text" class="form-control" id="txteditLastName" placeholder="Nama Belakang">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="font-weight-bold text-dark">
+                  <i class="fas fa-home text-secondary mr-1"></i> Alamat Lengkap
+                </label>
+                <textarea class="form-control" id="txteditAddress" rows="3" placeholder="Alamat domisili anggota"></textarea>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer justify-content-between bg-light py-3">
+        <button type="button" class="btn btn-secondary px-4 font-weight-bold" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i> Batal
+        </button>
+        <button type="button" class="btn btn-warning px-4 font-weight-bold shadow-sm" id="btnUpdate">
+          <i class="fas fa-save mr-1"></i> Simpan Perubahan
+        </button>
+      </div>
+
     </div>
-<!-- /.modal-dialog -->
+  </div>
 </div>
-<script src="/assets/puji/puji.image.js"></script>
+
 <script>
-console.log('add invoked');
 (function($){
-  $('#btnUpdate').click(function(){
-    console.log('test');
-    myimg = document.getElementById("editimg");
-    var btn = $('#btnUpdate');
-    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+  $('#btnUpdate').on("click", function(){
+    var julehaId = $('#txteditJulehaId').val().trim();
+    var nickName = $('#txteditNickName').val().trim();
+
+    if(!nickName){
+      alert('Nama Panggilan tidak boleh kosong!');
+      $('#txteditNickName').focus();
+      return;
+    }
+
+    var btn = $(this);
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan Perubahan...');
 
     $.ajax({
-      url:'/members/updatedata',
-      data:{
-        tableName:'members',
-        columns:{
-          juleha_id:$('#txteditJulehaId').val(),
-          nickname:$('#txteditNickName').val(),
-          firstname:$('#txteditFirstName').val(),
-          lastname:$('#txteditLastName').val(),
-          address:$('#txteditAddress').val(),
-          region:$('#cmbeditRegion').val(),
-          position:$('#cmbeditRole').val(),
-        },
-        img: $('#editimg').attr('src')
+      url: '/members/updatedata',
+      type: 'POST',
+      data: {
+        tableName: 'members',
+        columns: {
+          juleha_id: julehaId,
+          nickname: nickName,
+          firstname: $('#txteditFirstName').val().trim(),
+          lastname: $('#txteditLastName').val().trim(),
+          address: $('#txteditAddress').val().trim(),
+          region: $('#cmbeditRegion').val(),
+          position: $('#cmbeditRole').val()
+        }
       },
-      type:'post',
-      dataType:'json'
+      dataType: 'json'
     })
-    .done(res=>{
-      console.log('Res',res);
+    .done(function(res){
+      alert('Data anggota ' + nickName + ' berhasil diperbarui!');
       $("#edit-modal-lg").modal("hide");
       location.reload();
     })
-    .fail(err=>{
-      console.log("Err",err);
-      alert('Gagal memperbarui data anggota.');
-      btn.prop('disabled', false).html('Update');
+    .fail(function(err){
+      alert('Gagal memperbarui data anggota. Silakan periksa koneksi.');
+      btn.prop('disabled', false).html('<i class="fas fa-save mr-1"></i> Simpan Perubahan');
     });
-  $("#exampleInputFile").change(function(){
-    var reader = new FileReader()
-    reader.onload = imageIsLoaded
-    reader.readAsDataURL(this.files[0])
-  })
-  imageIsLoaded = e=>{
-    $('#editimg').attr('src',e.target.result)
-  }
-}(jQuery))
+  });
+})(jQuery);
 </script>
