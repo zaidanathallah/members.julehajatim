@@ -65,17 +65,18 @@ Class Members extends CI_Controller{
         }
         $customName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $customName);
 
-        // Konfigurasi library CI_Upload
+        // Pastikan folder penyimpanan gambar ada
         $uploadPath = './images/';
         if (!is_dir($uploadPath)) {
             mkdir($uploadPath, 0755, TRUE);
         }
 
+        // Konfigurasi library CI_Upload - Izinkan hingga 30MB, sistem otomatis mengompres
         $config['upload_path']   = $uploadPath;
         $config['allowed_types'] = 'jpg|jpeg|png';
-        $config['file_name']     = $customName . '.jpg';
+        $config['file_name']     = $customName . '_temp_' . time() . '.jpg';
         $config['overwrite']     = TRUE;
-        $config['max_size']      = 2048; // Max 2MB
+        $config['max_size']      = 30720; // 30MB untuk mendukung foto kamera resolusi tinggi (2K/4K)
 
         $this->load->library('upload', $config);
         $this->upload->initialize($config);
@@ -87,29 +88,74 @@ Class Members extends CI_Controller{
         }
 
         $uploadData = $this->upload->data();
+        $sourceFilePath = $uploadData['full_path'];
         $targetJpg = $uploadPath . $customName . '.jpg';
 
-        // Konversi PNG ke JPG jika diperlukan untuk konsistensi kartu KTA (showcard)
-        if (strtolower($uploadData['file_ext']) === '.png' || strtolower($uploadData['image_type']) === 'png') {
-            $sourceImg = imagecreatefrompng($uploadData['full_path']);
-            if ($sourceImg !== false) {
-                $width  = imagesx($sourceImg);
-                $height = imagesy($sourceImg);
-                $canvas = imagecreatetruecolor($width, $height);
-                $white  = imagecolorallocate($canvas, 255, 255, 255);
-                imagefilledrectangle($canvas, 0, 0, $width, $height, $white);
-                imagecopy($canvas, $sourceImg, 0, 0, 0, 0, $width, $height);
-                imagejpeg($canvas, $targetJpg, 90);
-                imagedestroy($canvas);
-                imagedestroy($sourceImg);
+        // Logika Auto-Kompresi & Penyesuaian Foto KTA menggunakan GD Library
+        $imageContent = file_get_contents($sourceFilePath);
+        $sourceImg = @imagecreatefromstring($imageContent);
 
-                if ($uploadData['full_path'] !== $targetJpg && file_exists($uploadData['full_path'])) {
-                    unlink($uploadData['full_path']);
+        if ($sourceImg !== false) {
+            // Perbaiki orientasi EXIF (khusus foto kamera HP / smartphone yang sering miring 90 derajat)
+            if (function_exists('exif_read_data')) {
+                $exif = @exif_read_data($sourceFilePath);
+                if (!empty($exif['Orientation'])) {
+                    switch ($exif['Orientation']) {
+                        case 3:
+                            $sourceImg = imagerotate($sourceImg, 180, 0);
+                            break;
+                        case 6:
+                            $sourceImg = imagerotate($sourceImg, -90, 0);
+                            break;
+                        case 8:
+                            $sourceImg = imagerotate($sourceImg, 90, 0);
+                            break;
+                    }
                 }
+            }
+
+            $origWidth  = imagesx($sourceImg);
+            $origHeight = imagesy($sourceImg);
+
+            // Skala dimensi maksimum ideal untuk kartu KTA (tajam, proporsional, dan ringan)
+            $maxWidth  = 800;
+            $maxHeight = 1000;
+
+            if ($origWidth > $maxWidth || $origHeight > $maxHeight) {
+                $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
+                $newWidth  = (int) round($origWidth * $ratio);
+                $newHeight = (int) round($origHeight * $ratio);
+            } else {
+                $newWidth  = $origWidth;
+                $newHeight = $origHeight;
+            }
+
+            // Buat kanvas baru dengan latar belakang putih bersih
+            $canvas = imagecreatetruecolor($newWidth, $newHeight);
+            $white  = imagecolorallocate($canvas, 255, 255, 255);
+            imagefilledrectangle($canvas, 0, 0, $newWidth, $newHeight, $white);
+
+            // Resample dengan interpolasi halus
+            imagecopyresampled($canvas, $sourceImg, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+            // Kompres dan simpan sebagai file JPG standar KTA (kualitas 82%, ukuran otomatis hemat 80KB-200KB)
+            imagejpeg($canvas, $targetJpg, 82);
+
+            imagedestroy($canvas);
+            imagedestroy($sourceImg);
+
+            // Bersihkan file upload sementara jika nama berbeda
+            if ($sourceFilePath !== $targetJpg && file_exists($sourceFilePath)) {
+                @unlink($sourceFilePath);
+            }
+        } else {
+            // Fallback jika tidak dapat diproses GD
+            if ($sourceFilePath !== $targetJpg) {
+                rename($sourceFilePath, $targetJpg);
             }
         }
 
-        echo "<script>alert('Foto KTA berhasil diperbarui.'); window.location.href='/members/showcard/" . htmlspecialchars($customName, ENT_QUOTES, 'UTF-8') . "';</script>";
+        echo "<script>alert('Foto KTA berhasil diunggah dan otomatis dikompres.'); window.location.href='" . base_url('members/showcard/' . rawurlencode($customName)) . "';</script>";
     }
 
     // Alias aman untuk endpoint legacy ngaplod

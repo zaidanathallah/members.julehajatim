@@ -69,7 +69,7 @@
     <div class="card upload-card">
         <div class="upload-header">
             <h4>Upload Foto KTA Anggota</h4>
-            <small>DPW Juru Sembelih Halal (Juleha) Jawa Timur</small>
+            <small>Juru Sembelih Halal (Juleha) Jawa Timur</small>
         </div>
         <div class="upload-body">
             <?php 
@@ -77,7 +77,7 @@
                 $cleanId = $hasId ? htmlspecialchars($juleha_id, ENT_QUOTES, 'UTF-8') : '';
                 $currentImg = $hasId ? base_url('images/' . $cleanId . '.jpg') : 'https://via.placeholder.com/160x200?text=Foto+KTA';
             ?>
-            <form action="<?php echo base_url('members/upload_foto_kta'); ?>" method="post" enctype="multipart/form-data">
+            <form id="uploadForm" action="<?php echo base_url('members/upload_foto_kta'); ?>" method="post" enctype="multipart/form-data" onsubmit="handleSubmit();">
                 <div class="preview-box">
                     <img id="imgPreview" src="<?php echo $currentImg; ?>" onerror="this.src='https://via.placeholder.com/160x200?text=Foto+KTA'" alt="Preview Foto">
                 </div>
@@ -94,11 +94,12 @@
                 <div class="form-group">
                     <label for="fileToUpload" class="font-weight-bold">Pilih Berkas Foto:</label>
                     <input type="file" name="fileToUpload" id="fileToUpload" class="form-control-file" accept=".jpg,.jpeg,.png" required onchange="previewImage(this);">
-                    <small class="form-text text-muted">Format yang diizinkan: <strong>JPG, JPEG, PNG</strong> (Maks. 2MB). Foto akan diproses otomatis untuk kartu tanda anggota.</small>
+                    <small class="form-text text-muted">Format: <strong>JPG, JPEG, PNG</strong> (Foto ukuran besar/kamera HP akan <strong>otomatis dikompres & disesuaikan</strong> oleh sistem agar pas di kartu KTA).</small>
+                    <div id="fileInfo" class="mt-1" style="font-size: 0.85rem; color: #28a745; display: none;"></div>
                 </div>
 
                 <div class="mt-4">
-                    <input type="submit" value="Upload & Perbarui Foto KTA" name="submit" class="btn btn-upload">
+                    <button type="submit" id="btnSubmit" class="btn btn-upload">Upload & Perbarui Foto KTA</button>
                     <a id="btnBatal" href="<?php echo $hasId ? base_url('members/showcard/' . $cleanId) : base_url(); ?>" class="btn btn-outline-secondary btn-block mt-2">Batal & Kembali</a>
                 </div>
             </form>
@@ -109,12 +110,24 @@
 <script>
 function previewImage(input) {
     if (input.files && input.files[0]) {
+        var file = input.files[0];
+        var sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        var infoDiv = document.getElementById('fileInfo');
+        infoDiv.style.display = 'block';
+        infoDiv.innerHTML = '&#10004; File terpilih: <strong>' + file.name + '</strong> (' + sizeMB + ' MB). <em>Sistem akan otomatis mengompres foto ini.</em>';
+
         var reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('imgPreview').src = e.target.result;
         }
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
+}
+
+function handleSubmit() {
+    var btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.innerHTML = 'Mengompres & Mengunggah...';
 }
 
 document.getElementById('custom_name').addEventListener('input', function() {
