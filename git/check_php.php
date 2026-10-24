@@ -23,13 +23,28 @@ header('Content-Type: text/html; charset=utf-8');
         <div class="row">
             <span class="label">Koneksi Database:</span> 
             <?php
-            $conn = @mysqli_connect('127.0.0.1', 'root', '', 'julehaaja_members');
-            if ($conn) {
-                $count = mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM members"))[0];
-                echo "<span class='badge' style='background:#dcfce7; color:#15803d;'>Terhubung (Database: julehaaja_members, $count Anggota)</span>";
-                mysqli_close($conn);
-            } else {
-                echo "<span class='badge' style='background:#fee2e2; color:#b91c1c;'>Gagal: " . mysqli_connect_error() . "</span>";
+            try {
+                if (file_exists(__DIR__ . '/application/config/database.php')) {
+                    defined('BASEPATH') or define('BASEPATH', TRUE);
+                    include __DIR__ . '/application/config/database.php';
+                    $cfg = $db['default'] ?? null;
+                    if ($cfg) {
+                        mysqli_report(MYSQLI_REPORT_OFF);
+                        $conn = @mysqli_connect($cfg['hostname'], $cfg['username'], $cfg['password'], $cfg['database']);
+                        if ($conn) {
+                            $res = @mysqli_query($conn, "SELECT COUNT(*) FROM members");
+                            $count = $res ? mysqli_fetch_row($res)[0] : 'OK';
+                            echo "<span class='badge' style='background:#dcfce7; color:#15803d;'>Terhubung (" . htmlspecialchars($cfg['database']) . ", $count Anggota)</span>";
+                            mysqli_close($conn);
+                        } else {
+                            echo "<span class='badge' style='background:#fee2e2; color:#b91c1c;'>Gagal Koneksi: " . htmlspecialchars(mysqli_connect_error()) . "</span>";
+                        }
+                    }
+                } else {
+                    echo "<span class='badge' style='background:#fef3c7; color:#b45309;'>database.php tidak ditemukan</span>";
+                }
+            } catch (Throwable $e) {
+                echo "<span class='badge' style='background:#fee2e2; color:#b91c1c;'>Info: " . htmlspecialchars($e->getMessage()) . "</span>";
             }
             ?>
         </div>
