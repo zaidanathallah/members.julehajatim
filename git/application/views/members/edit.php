@@ -130,29 +130,11 @@
       dataType: 'json'
     })
     .done(function(res){
-      btn.prop('disabled', false).html('<i class="fas fa-save mr-1"></i> Simpan Perubahan');
+      btn.prop('disabled', true).html('<i class="fas fa-check-circle mr-1"></i> Perubahan Tersimpan! Memuat...');
       $("#edit-modal-lg").modal("hide");
 
-      var dt = window.membersTable || ($.fn.DataTable.isDataTable('#example2') ? $('#example2').DataTable() : null);
-      if (dt) {
-        var $row = $('tr[data-juleha-id="' + julehaId + '"]');
-        if ($row.length) {
-          $row.find('td:eq(1)').html('<strong>' + $('<div>').text(nickName).html() + '</strong>');
-          $row.find('td:eq(2)').html('<span class="badge badge-light border">' + $('<div>').text($('#cmbeditRegion').val()).html() + '</span>');
-          $row.find('td:eq(3)').text($('#cmbeditRole').val() || '-');
-          $row.find('td:eq(4)').html('<small class="text-muted">' + $('<div>').text($('#txteditAddress').val().trim() || '-').html() + '</small>');
-          $row.attr('data-nickname', nickName);
-          $row.data('nickname', nickName);
-          $row.find('.dropdown-item').attr('data-nickname', nickName).data('nickname', nickName);
-          dt.row($row).invalidate().draw(false);
-          $row.addClass('table-warning');
-          setTimeout(function(){ $row.removeClass('table-warning'); }, 3000);
-        }
-        alert('Alhamdulillah! Data anggota ' + nickName + ' berhasil diperbarui!');
-      } else {
-        alert('Data anggota ' + nickName + ' berhasil diperbarui!');
-        location.reload();
-      }
+      // AUTO RELOAD OTOMATIS: langsung reload dan tampilkan perubahan di tabel
+      window.location.href = '/members/index?search=' + encodeURIComponent(julehaId) + '&updated=' + encodeURIComponent(nickName);
     })
     .fail(function(err){
       alert('Gagal memperbarui data anggota. Silakan periksa koneksi.');

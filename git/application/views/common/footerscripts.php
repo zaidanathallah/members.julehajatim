@@ -157,6 +157,28 @@
         }
       }
     }).buttons().container().appendTo('#example2_wrapper .col-md-6:eq(0)');
+
+    // Auto-search and highlight newly added / updated member on page load
+    var urlParams = new URLSearchParams(window.location.search);
+    var autoSearch = urlParams.get('search');
+    if (autoSearch && window.membersTable) {
+      window.membersTable.search(autoSearch).draw();
+      setTimeout(function(){
+        var $targetRow = $('tr[data-juleha-id="' + autoSearch + '"]');
+        if ($targetRow.length) {
+          $targetRow.addClass('table-success');
+          $('html, body').animate({
+            scrollTop: $targetRow.offset().top - 140
+          }, 400);
+          setTimeout(function(){
+            $targetRow.removeClass('table-success');
+          }, 6000);
+        }
+      }, 200);
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
   });
 
 </script>

@@ -235,6 +235,28 @@
                 </h3>
               </div>
               <div class="card-body">
+                <?php if ($this->input->get('added')): ?>
+                <div class="alert alert-success alert-dismissible fade show shadow-sm mb-3" role="alert" style="border-radius: 10px;">
+                  <i class="fas fa-check-circle mr-1"></i>
+                  Anggota baru <strong><?php echo htmlspecialchars($this->input->get('added'), ENT_QUOTES, 'UTF-8'); ?></strong> 
+                  (ID: <code><?php echo htmlspecialchars($this->input->get('search'), ENT_QUOTES, 'UTF-8'); ?></code>) 
+                  berhasil didaftarkan dan langsung otomatis masuk ke tabel!
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <?php elseif ($this->input->get('updated')): ?>
+                <div class="alert alert-info alert-dismissible fade show shadow-sm mb-3" role="alert" style="border-radius: 10px;">
+                  <i class="fas fa-check-circle mr-1"></i>
+                  Data anggota <strong><?php echo htmlspecialchars($this->input->get('updated'), ENT_QUOTES, 'UTF-8'); ?></strong> 
+                  (ID: <code><?php echo htmlspecialchars($this->input->get('search'), ENT_QUOTES, 'UTF-8'); ?></code>) 
+                  berhasil diperbarui!
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <?php endif; ?>
+
                 <div class="d-block d-md-none alert alert-light border py-2 px-3 mb-3 text-muted" style="font-size: 0.82rem; border-radius: 8px;">
                   <i class="fas fa-arrows-alt-h text-primary mr-1"></i> <strong>Mode HP:</strong> Geser tabel ke samping untuk melihat seluruh kolom (Status, Sertifikat, Pelatihan, & Opsi Aksi).
                 </div>
