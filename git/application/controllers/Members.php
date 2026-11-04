@@ -186,6 +186,10 @@ Class Members extends CI_Controller{
             redirect('/members/login');
             return;
         }
+        $this->output->set_header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        $this->output->set_header("Cache-Control: post-check=0, pre-check=0", false);
+        $this->output->set_header("Pragma: no-cache");
+
         $objs = $this->member->gets();
         $regions = $this->region->gets();
         $data = array(
@@ -501,7 +505,26 @@ function save(){
     }
 
     // Simpan data text ke database dan kirim respon json
-    echo json_encode($this->member->save($params));
+    $saveResult = $this->member->save($params);
+    $newId = (int)($saveResult['id'] ?? 0);
+
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status' => ($newId > 0),
+        'id' => $newId,
+        'juleha_id' => $params['columns']['juleha_id'] ?? '',
+        'nickname' => $params['columns']['nickname'] ?? '',
+        'firstname' => $params['columns']['firstname'] ?? '',
+        'lastname' => $params['columns']['lastname'] ?? '',
+        'region' => $params['columns']['region'] ?? '',
+        'position' => $params['columns']['position'] ?? 'Anggota',
+        'address' => $params['columns']['address'] ?? '',
+        'mstatus' => 'aktif',
+        'certificate' => 0,
+        'portofolio' => 0,
+        'training' => 0,
+        'sql' => $saveResult['sql'] ?? ''
+    ]);
 }
 
 function saveImage($img, $juleha_id){

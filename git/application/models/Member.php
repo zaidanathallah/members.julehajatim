@@ -58,17 +58,16 @@ Class Member extends CI_Model{
         }
     }
     function save($params){
-
-        $keys = array();$vals = array();
-        $sql = 'insert into  ' . $params['tableName'];
-        foreach($params['columns'] as $key=>$val){
-            array_push($keys,$key);
-            array_push($vals,$val);
-        }
-        $sql.= '('.implode(",",$keys).")";
-        $sql.= ' values ';
-        $sql.= '("'.implode('","',$vals).'")';
         $ci = & get_instance();
+        $keys = array(); $vals = array();
+        $sql = 'insert into ' . $params['tableName'];
+        foreach($params['columns'] as $key=>$val){
+            array_push($keys, $key);
+            array_push($vals, '"' . $ci->db->escape_str($val) . '"');
+        }
+        $sql.= ' (' . implode(",", $keys) . ')';
+        $sql.= ' values ';
+        $sql.= '(' . implode(',', $vals) . ')';
         $que = $ci->db->query($sql);
         return array(
             'id'=>$ci->db->insert_id(),

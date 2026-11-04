@@ -1,9 +1,40 @@
+<?php
+// Bentuk Nama Lengkap Resmi untuk KTA dari nama depan dan nama belakang (serta nama tengah jika ada)
+$firstName  = trim($obj->firstname ?? '');
+$middleName = trim($obj->middlename ?? '');
+$lastName   = trim($obj->lastname ?? '');
+$nickName   = trim($obj->nickname ?? '');
+
+if (!empty($firstName) && !empty($lastName)) {
+    if (strcasecmp($firstName, $lastName) === 0) {
+        $fullName = $firstName;
+    } else if (stripos($firstName, $lastName) !== false) {
+        $fullName = $firstName;
+    } else if (stripos($lastName, $firstName) !== false) {
+        $fullName = $lastName;
+    } else {
+        $fullName = !empty($middleName) ? ($firstName . ' ' . $middleName . ' ' . $lastName) : ($firstName . ' ' . $lastName);
+    }
+} else if (!empty($firstName)) {
+    $fullName = !empty($middleName) ? ($firstName . ' ' . $middleName) : $firstName;
+} else if (!empty($lastName)) {
+    $fullName = $lastName;
+} else if (!empty($nickName)) {
+    $fullName = $nickName;
+} else {
+    $fullName = $obj->juleha_id ?? 'ANGGOTA';
+}
+
+$fullName = preg_replace('/\s+/', ' ', trim($fullName));
+$fullNameUpper = strtoupper($fullName);
+$displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj->juleha_id);
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Profil Anggota - <?php echo htmlspecialchars($obj->nickname ?? $juleha_id, ENT_QUOTES, 'UTF-8'); ?> - Juleha Jatim</title>
+  <title>Profil Anggota - <?php echo htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8'); ?> - Juleha Jatim</title>
 
   <!-- Google Font: Poppins -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -416,7 +447,7 @@
               </div>
               
               <h3 class="font-weight-bold mb-1" style="color: #0f172a; font-size: 1.25rem;">
-                <?php echo htmlspecialchars($obj->nickname ?? $juleha_id, ENT_QUOTES, 'UTF-8'); ?>
+                <?php echo htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8'); ?>
               </h3>
 
               <div class="mb-2">
@@ -656,6 +687,7 @@
 (function($){
   var currentJulehaId = "<?php echo addslashes($juleha_id); ?>";
   var currentNickName = "<?php echo addslashes($obj->nickname ?? $juleha_id); ?>";
+  var currentFullName = "<?php echo addslashes($fullNameUpper); ?>";
   var currentMStatus  = "<?php echo addslashes(strtolower($obj->mstatus ?? 'aktif')); ?>";
   var currentMemberId = "<?php echo addslashes($obj->id ?? ''); ?>";
   var currentTimestamp = "<?php echo time(); ?>";
@@ -768,11 +800,24 @@
     ctx.lineTo(lineX + 256, lineY + 48);
     ctx.stroke();
 
+    // Nama Lengkap Anggota (1 Baris Rapi, Proporsional & Auto-Fit)
+    var startX = cWidth * 0.46;
+    var startY = cHeight * 0.42;
+    var maxNameWidth = (cWidth * 0.94) - startX; // batas aman sisi kanan (~286px)
+    var currentFontSize = 19; // font awal proporsional, elegan & tidak terlalu besar
+    var minFontSize = 11;
+
     ctx.fillStyle = "black";
-    ctx.font = "bold 24px Poppins, sans-serif";
-    ctx.fillText(currentNickName, cWidth * 0.46, cHeight * 0.42);
-    ctx.font = "bold 24px Poppins, sans-serif";
-    ctx.fillText(currentJulehaId, cWidth * 0.46, cHeight * 0.47);
+    ctx.font = "bold " + currentFontSize + "px Poppins, sans-serif";
+    while (ctx.measureText(currentFullName).width > maxNameWidth && currentFontSize > minFontSize) {
+        currentFontSize -= 0.5;
+        ctx.font = "bold " + currentFontSize + "px Poppins, sans-serif";
+    }
+    ctx.fillText(currentFullName, startX, startY, maxNameWidth);
+
+    // Teks ID Juleha di dalam kotak
+    ctx.font = "bold 22px Poppins, sans-serif";
+    ctx.fillText(currentJulehaId, startX, cHeight * 0.47);
 
     // E. Penanda Jika Status Tidak Aktif
     if (currentMStatus !== "aktif") {

@@ -147,7 +147,9 @@
                         </table>
                     </div>
                   <div class="tab-pane" id="kta">
-                  <img id="templatekta" src="/images/templatekta.jpeg" alt="" srcset="">
+                    <a href="<?php echo base_url('members/showcard/' . rawurlencode($juleha_id)); ?>" target="_blank" class="btn btn-success font-weight-bold my-2">
+                      <i class="fas fa-id-card mr-1"></i> Buka & Download Kartu KTA Resmi Modern
+                    </a>
                   </div>
                   <!-- /.tab-pane -->
                 </div>

@@ -1,9 +1,40 @@
+<?php
+// Bentuk Nama Lengkap Resmi untuk KTA dari nama depan dan nama belakang (serta nama tengah jika ada)
+$firstName  = trim($obj->firstname ?? '');
+$middleName = trim($obj->middlename ?? '');
+$lastName   = trim($obj->lastname ?? '');
+$nickName   = trim($obj->nickname ?? '');
+
+if (!empty($firstName) && !empty($lastName)) {
+    if (strcasecmp($firstName, $lastName) === 0) {
+        $fullName = $firstName;
+    } else if (stripos($firstName, $lastName) !== false) {
+        $fullName = $firstName;
+    } else if (stripos($lastName, $firstName) !== false) {
+        $fullName = $lastName;
+    } else {
+        $fullName = !empty($middleName) ? ($firstName . ' ' . $middleName . ' ' . $lastName) : ($firstName . ' ' . $lastName);
+    }
+} else if (!empty($firstName)) {
+    $fullName = !empty($middleName) ? ($firstName . ' ' . $middleName) : $firstName;
+} else if (!empty($lastName)) {
+    $fullName = $lastName;
+} else if (!empty($nickName)) {
+    $fullName = $nickName;
+} else {
+    $fullName = $obj->juleha_id ?? 'ANGGOTA';
+}
+
+$fullName = preg_replace('/\s+/', ' ', trim($fullName));
+$fullNameUpper = strtoupper($fullName);
+$displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj->juleha_id);
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Kartu Tanda Anggota - <?php echo htmlspecialchars($obj->nickname ?? $obj->juleha_id, ENT_QUOTES, 'UTF-8'); ?> - Juleha Jatim</title>
+    <title>Kartu Tanda Anggota - <?php echo htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8'); ?> - Juleha Jatim</title>
     <!-- Bootstrap 4 & FontAwesome & Poppins Font -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/adminlte/plugins/fontawesome-free/css/all.min.css">
@@ -157,7 +188,7 @@
             <div class="kta-actions">
                 <div class="text-center mb-3">
                     <span class="text-muted font-weight-bold" style="font-size: 0.95rem;">
-                        <?php echo htmlspecialchars($obj->nickname ?? $obj->juleha_id, ENT_QUOTES, 'UTF-8'); ?> 
+                        <?php echo htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8'); ?> 
                         &bull; ID: <code><?php echo htmlspecialchars($obj->juleha_id, ENT_QUOTES, 'UTF-8'); ?></code>
                     </span>
                 </div>
@@ -178,6 +209,7 @@
     <script type="text/javascript">
         var julehaId = "<?php echo addslashes($obj->juleha_id); ?>";
         var nickName = "<?php echo addslashes($obj->nickname); ?>";
+        var fullName = "<?php echo addslashes($fullNameUpper); ?>";
         var mstatus  = "<?php echo addslashes(strtolower($obj->mstatus)); ?>";
         var timestamp = "<?php echo time(); ?>";
 
@@ -288,11 +320,24 @@
             ctx.lineTo(lineX + 256, lineY + 48);
             ctx.stroke();
 
+            // Nama Lengkap Anggota (1 Baris Rapi, Proporsional & Auto-Fit)
+            var startX = cWidth * 0.46;
+            var startY = cHeight * 0.42;
+            var maxNameWidth = (cWidth * 0.94) - startX; // batas aman sisi kanan (~286px)
+            var currentFontSize = 19; // font awal proporsional, elegan & tidak terlalu besar
+            var minFontSize = 11;
+
             ctx.fillStyle = "black";
-            ctx.font = "bold 24px Poppins, sans-serif";
-            ctx.fillText(nickName, cWidth * 0.46, cHeight * 0.42);
-            ctx.font = "bold 24px Poppins, sans-serif";
-            ctx.fillText(julehaId, cWidth * 0.46, cHeight * 0.47);
+            ctx.font = "bold " + currentFontSize + "px Poppins, sans-serif";
+            while (ctx.measureText(fullName).width > maxNameWidth && currentFontSize > minFontSize) {
+                currentFontSize -= 0.5;
+                ctx.font = "bold " + currentFontSize + "px Poppins, sans-serif";
+            }
+            ctx.fillText(fullName, startX, startY, maxNameWidth);
+
+            // Teks ID Juleha di dalam kotak
+            ctx.font = "bold 22px Poppins, sans-serif";
+            ctx.fillText(julehaId, startX, cHeight * 0.47);
 
             // E. Penanda Jika Status Tidak Aktif
             if (mstatus !== "aktif") {
