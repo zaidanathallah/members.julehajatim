@@ -685,16 +685,21 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
                           <?php endif; ?>
                         </div>
                         <h6 class="entry-title mb-1">
-                          <i class="fas fa-map-marker-alt text-danger mr-1"></i> <?php echo htmlspecialchars($pk->effective_location ?? 'RPH Jatim', ENT_QUOTES, 'UTF-8'); ?>
+                          <i class="fas fa-map-marker-alt text-danger mr-1"></i> <?php echo ((int)$pk->rph_id === 2) ? 'RPH Kedurus' : 'RPH TOW (Tambak Osowilangun)'; ?>
                           <span class="badge badge-light border ml-1 font-weight-normal"><?php echo htmlspecialchars($pk->animal_type ?? 'Sapi', ENT_QUOTES, 'UTF-8'); ?></span>
+                          <?php if (!empty($pk->evaluation_status)): ?>
+                            <span class="badge badge-success ml-1"><?php echo htmlspecialchars($pk->evaluation_status, ENT_QUOTES, 'UTF-8'); ?></span>
+                          <?php endif; ?>
                         </h6>
                         <?php if (!$is_inst && (!empty($pk->instructor_firstname) || !empty($pk->instructor_nickname))): ?>
                           <small class="text-muted d-block mt-1">
-                            Instruktur: <strong><?php echo htmlspecialchars(trim(($pk->instructor_firstname ?? '') . ' ' . ($pk->instructor_lastname ?? '')) ?: $pk->instructor_nickname); ?></strong>
+                            Instruktur Penguji: <strong><?php echo htmlspecialchars(trim(($pk->instructor_firstname ?? '') . ' ' . ($pk->instructor_lastname ?? '')) ?: $pk->instructor_nickname); ?></strong>
                           </small>
                         <?php endif; ?>
                         <?php if (!empty($pk->description)): ?>
-                          <p class="small text-muted mb-0 mt-1"><?php echo htmlspecialchars($pk->description, ENT_QUOTES, 'UTF-8'); ?></p>
+                          <div class="small text-dark mt-2 p-2 bg-light rounded border">
+                            <i class="fas fa-clipboard-check text-success mr-1"></i> <strong>Evaluasi:</strong> <?php echo htmlspecialchars($pk->description, ENT_QUOTES, 'UTF-8'); ?>
+                          </div>
                         <?php endif; ?>
                       </div>
                     <?php endforeach; ?>

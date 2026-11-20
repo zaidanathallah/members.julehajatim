@@ -100,14 +100,32 @@
       font-weight: 600;
       font-size: 0.8rem;
     }
-    .badge-animal {
-      background-color: #f1f5f9;
-      color: #334155;
-      border: 1px solid #cbd5e1;
+    .badge-eval-pass {
+      background-color: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
       padding: 4px 10px;
       border-radius: 20px;
+      font-weight: 600;
       font-size: 0.78rem;
-      font-weight: 500;
+    }
+    .badge-eval-wait {
+      background-color: #fef9c3;
+      color: #854d0e;
+      border: 1px solid #fde047;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.78rem;
+    }
+    .badge-eval-guidance {
+      background-color: #ffedd5;
+      color: #9a3412;
+      border: 1px solid #fed7aa;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.78rem;
     }
     .member-thumb {
       width: 40px;
@@ -169,7 +187,7 @@
             <h1 class="m-0 font-weight-bold" style="color: #064e3b; font-size: 1.55rem;">
               <i class="fas fa-clipboard-check text-success mr-2"></i> Rekapitulasi Presensi & Praktik Sembelih
             </h1>
-            <p class="text-muted small m-0 mt-1">Data Riwayat Praktik Penyembelihan & Instruktur Juleha Jawa Timur</p>
+            <p class="text-muted small m-0 mt-1">Khusus Lokasi Resmi: <strong>RPH TOW</strong> & <strong>RPH Kedurus</strong> Juleha Jawa Timur</p>
           </div>
           <div class="col-sm-6 mt-2 mt-sm-0">
             <ol class="breadcrumb float-sm-right bg-transparent p-0 m-0">
@@ -225,10 +243,18 @@
           </div>
         </div>
 
-        <!-- Filter Card -->
+        <!-- Filter Card: RPH HANYA TOW DAN KEDURUS -->
         <div class="card-modern p-3 mb-4">
           <form method="GET" action="<?php echo base_url('prakteks/index'); ?>" class="row align-items-end">
             <div class="col-md-3 col-6 mb-2">
+              <label class="small text-muted font-weight-bold text-uppercase mb-1">Lokasi RPH</label>
+              <select name="rph_id" class="form-control form-control-sm font-weight-bold">
+                <option value="">-- Semua RPH (TOW & Kedurus) --</option>
+                <option value="1" <?php echo ($filters['rph_id'] == '1') ? 'selected' : ''; ?>>RPH TOW (Tambak Osowilangun)</option>
+                <option value="2" <?php echo ($filters['rph_id'] == '2') ? 'selected' : ''; ?>>RPH Kedurus</option>
+              </select>
+            </div>
+            <div class="col-md-2 col-6 mb-2">
               <label class="small text-muted font-weight-bold text-uppercase mb-1">Peran</label>
               <select name="role" class="form-control form-control-sm">
                 <option value="">-- Semua Peran --</option>
@@ -237,25 +263,13 @@
               </select>
             </div>
             <div class="col-md-2 col-6 mb-2">
-              <label class="small text-muted font-weight-bold text-uppercase mb-1">Jenis Hewan</label>
-              <select name="animal_type" class="form-control form-control-sm">
-                <option value="">-- Semua Hewan --</option>
-                <option value="Sapi" <?php echo ($filters['animal_type'] === 'Sapi') ? 'selected' : ''; ?>>Sapi</option>
-                <option value="Kambing / Domba" <?php echo ($filters['animal_type'] === 'Kambing / Domba') ? 'selected' : ''; ?>>Kambing / Domba</option>
-                <option value="Unggas" <?php echo ($filters['animal_type'] === 'Unggas') ? 'selected' : ''; ?>>Unggas</option>
-                <option value="Pelatihan Umum" <?php echo ($filters['animal_type'] === 'Pelatihan Umum') ? 'selected' : ''; ?>>Pelatihan / Uji</option>
-              </select>
-            </div>
-            <div class="col-md-3 col-6 mb-2">
-              <label class="small text-muted font-weight-bold text-uppercase mb-1">Lokasi / RPH</label>
-              <select name="rph_id" class="form-control form-control-sm">
-                <option value="">-- Semua Lokasi RPH --</option>
-                <option value="1" <?php echo ($filters['rph_id'] == '1') ? 'selected' : ''; ?>>Pegirian (Surabaya)</option>
-                <option value="2" <?php echo ($filters['rph_id'] == '2') ? 'selected' : ''; ?>>Kedurus (Surabaya)</option>
-                <option value="3" <?php echo ($filters['rph_id'] == '3') ? 'selected' : ''; ?>>Kambing Kota (Surabaya)</option>
-                <option value="4" <?php echo ($filters['rph_id'] == '4') ? 'selected' : ''; ?>>Krian Tradisional (Sidoarjo)</option>
-                <option value="5" <?php echo ($filters['rph_id'] == '5') ? 'selected' : ''; ?>>Krian Modern (Sidoarjo)</option>
-                <option value="7" <?php echo ($filters['rph_id'] == '7') ? 'selected' : ''; ?>>Malang</option>
+              <label class="small text-muted font-weight-bold text-uppercase mb-1">Status Evaluasi</label>
+              <select name="evaluation_status" class="form-control form-control-sm">
+                <option value="">-- Semua Status --</option>
+                <option value="Lulus Praktik" <?php echo ($filters['evaluation_status'] === 'Lulus Praktik') ? 'selected' : ''; ?>>Lulus Praktik</option>
+                <option value="Dalam Pembimbingan" <?php echo ($filters['evaluation_status'] === 'Dalam Pembimbingan') ? 'selected' : ''; ?>>Dalam Pembimbingan</option>
+                <option value="Perlu Pengulangan" <?php echo ($filters['evaluation_status'] === 'Perlu Pengulangan') ? 'selected' : ''; ?>>Perlu Pengulangan</option>
+                <option value="Menunggu Evaluasi" <?php echo ($filters['evaluation_status'] === 'Menunggu Evaluasi') ? 'selected' : ''; ?>>Menunggu Evaluasi</option>
               </select>
             </div>
             <div class="col-md-2 col-6 mb-2">
@@ -267,9 +281,9 @@
                 <?php endfor; ?>
               </select>
             </div>
-            <div class="col-md-2 col-12 mb-2 d-flex" style="gap: 6px;">
+            <div class="col-md-3 col-12 mb-2 d-flex" style="gap: 6px;">
               <button type="submit" class="btn btn-success btn-sm flex-fill font-weight-bold">
-                <i class="fas fa-filter mr-1"></i> Filter
+                <i class="fas fa-filter mr-1"></i> Terapkan Filter
               </button>
               <a href="<?php echo base_url('prakteks/index'); ?>" class="btn btn-outline-secondary btn-sm" title="Reset Filter">
                 <i class="fas fa-redo"></i>
@@ -281,10 +295,10 @@
         <!-- Main Table Card -->
         <div class="card-modern">
           <div class="card-header-juleha d-flex flex-wrap align-items-center justify-content-between">
-            <h5 class="m-0 font-weight-bold"><i class="fas fa-list mr-2"></i> Riwayat Sesi Praktik & Instruktur</h5>
+            <h5 class="m-0 font-weight-bold"><i class="fas fa-list mr-2"></i> Riwayat & Evaluasi Praktik di RPH</h5>
             <div class="mt-2 mt-sm-0">
               <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-light btn-sm font-weight-bold text-success mr-2">
-                <i class="fas fa-plus-circle mr-1"></i> Tambah Presensi Baru
+                <i class="fas fa-plus-circle mr-1"></i> Scan Presensi KTA
               </a>
               <a href="<?php echo base_url('prakteks/rekap_anggota'); ?>" class="btn btn-outline-light btn-sm font-weight-bold">
                 <i class="fas fa-chart-bar mr-1"></i> Rekap Tiap Anggota
@@ -298,13 +312,13 @@
                   <tr>
                     <th style="width: 40px;">No</th>
                     <th>Waktu / Tanggal</th>
-                    <th>Anggota / Peserta</th>
+                    <th>Peserta / Praktikan</th>
                     <th>Peran</th>
+                    <th>Lokasi RPH</th>
                     <th>Instruktur Pembimbing</th>
-                    <th>Lokasi RPH / Tempat</th>
-                    <th>Objek Praktik</th>
-                    <th>Catatan / Keterangan</th>
-                    <th style="width: 80px;" class="text-center">Aksi</th>
+                    <th>Status Evaluasi</th>
+                    <th>Catatan Evaluasi Instruktur</th>
+                    <th style="width: 100px;" class="text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -329,6 +343,14 @@
                       if (empty($inst_name)) {
                         $inst_name = $r->instructor_nickname ?? $r->instructor_id ?? '-';
                       }
+
+                      $eval_by_name = trim(($r->evaluator_firstname ?? '') . ' ' . ($r->evaluator_lastname ?? ''));
+                      if (empty($eval_by_name)) {
+                        $eval_by_name = $r->evaluator_nickname ?? $r->evaluated_by ?? '';
+                      }
+                      
+                      $eval_status = $r->evaluation_status ?? 'Lulus Praktik';
+                      $rph_display = ((int)$r->rph_id === 2) ? 'RPH Kedurus' : 'RPH TOW';
                   ?>
                     <tr>
                       <td class="text-center font-weight-bold"><?php echo $no++; ?></td>
@@ -348,7 +370,7 @@
                                class="font-weight-bold text-success d-block" target="_blank">
                               <?php echo htmlspecialchars($member_name); ?>
                             </a>
-                            <small class="badge badge-light border"><?php echo htmlspecialchars($r->juleha_id); ?></small>
+                            <small class="badge badge-light border font-weight-bold"><?php echo htmlspecialchars($r->juleha_id); ?></small>
                             <?php if (!empty($r->member_region)): ?>
                               <small class="text-muted ml-1">(<?php echo htmlspecialchars($r->member_region); ?>)</small>
                             <?php endif; ?>
@@ -363,8 +385,13 @@
                         <?php endif; ?>
                       </td>
                       <td>
+                        <span class="badge badge-light border font-weight-bold text-dark">
+                          <i class="fas fa-map-marker-alt text-danger mr-1"></i> <?php echo $rph_display; ?>
+                        </span>
+                      </td>
+                      <td>
                         <?php if (!empty($r->instructor_id) || $inst_name !== '-'): ?>
-                          <span class="font-weight-500 text-dark"><?php echo htmlspecialchars($inst_name); ?></span>
+                          <span class="font-weight-600 text-dark"><?php echo htmlspecialchars($inst_name); ?></span>
                           <?php if (!empty($r->instructor_id)): ?>
                             <small class="text-muted d-block"><?php echo htmlspecialchars($r->instructor_id); ?></small>
                           <?php endif; ?>
@@ -373,15 +400,32 @@
                         <?php endif; ?>
                       </td>
                       <td>
-                        <span class="font-weight-500 text-dark"><i class="fas fa-map-marker-alt text-danger mr-1"></i> <?php echo htmlspecialchars($r->effective_location ?? 'RPH Jatim'); ?></span>
+                        <?php if ($eval_status === 'Lulus Praktik'): ?>
+                          <span class="badge-eval-pass"><i class="fas fa-check-circle mr-1"></i> Lulus Praktik</span>
+                        <?php elseif ($eval_status === 'Menunggu Evaluasi'): ?>
+                          <span class="badge-eval-wait"><i class="fas fa-clock mr-1"></i> Menunggu Evaluasi</span>
+                        <?php else: ?>
+                          <span class="badge-eval-guidance"><i class="fas fa-info-circle mr-1"></i> <?php echo htmlspecialchars($eval_status); ?></span>
+                        <?php endif; ?>
                       </td>
                       <td>
-                        <span class="badge-animal"><i class="fas fa-tag mr-1"></i> <?php echo htmlspecialchars($r->animal_type ?? 'Sapi'); ?></span>
-                      </td>
-                      <td>
-                        <small class="text-muted"><?php echo htmlspecialchars($r->description ?? '-'); ?></small>
+                        <div class="small text-dark font-weight-500">
+                          <?php echo htmlspecialchars($r->description ?: 'Belum ada catatan evaluasi'); ?>
+                        </div>
+                        <?php if (!empty($eval_by_name)): ?>
+                          <small class="text-muted d-block mt-1">
+                            <i class="fas fa-user-edit mr-1"></i> Oleh: <strong><?php echo htmlspecialchars($eval_by_name); ?></strong>
+                          </small>
+                        <?php endif; ?>
                       </td>
                       <td class="text-center">
+                        <!-- Button Beri/Edit Catatan Evaluasi -->
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-circle p-1 mr-1" style="width:32px;height:32px;"
+                                onclick="openModalEvaluasi(<?php echo (int)$r->id; ?>, '<?php echo htmlspecialchars($r->juleha_id); ?>', '<?php echo htmlspecialchars(addslashes($member_name)); ?>', '<?php echo htmlspecialchars(addslashes($eval_status)); ?>', '<?php echo htmlspecialchars(addslashes($r->description ?? '')); ?>')"
+                                title="Beri / Edit Catatan Evaluasi Instruktur">
+                          <i class="fas fa-comment-medical"></i>
+                        </button>
+                        <!-- Button Hapus (Admin) -->
                         <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-1" style="width:32px;height:32px;"
                                 onclick="deletePraktik(<?php echo (int)$r->id; ?>, '<?php echo htmlspecialchars($r->juleha_id); ?>')" 
                                 title="Hapus Data">
@@ -400,6 +444,56 @@
       </div>
     </section>
 
+  </div>
+
+  <!-- Modal Khusus Instruktur: Beri / Edit Catatan Evaluasi Peserta -->
+  <div class="modal fade" id="modalEvaluasi" tabindex="-1" role="dialog" aria-labelledby="modalEvaluasiLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+        <div class="modal-header text-white" style="background: linear-gradient(135deg, #064e3b 0%, #059669 100%);">
+          <h5 class="modal-title font-weight-bold" id="modalEvaluasiLabel">
+            <i class="fas fa-comment-dots mr-2"></i> Catatan Evaluasi Instruktur
+          </h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="formEvaluasiInstruktur">
+          <div class="modal-body p-4">
+            <input type="hidden" name="id" id="eval_id" value="">
+
+            <div class="p-3 bg-light rounded border mb-3">
+              <div class="small text-muted font-weight-bold text-uppercase">Peserta yang Dievaluasi:</div>
+              <h5 class="font-weight-bold text-success mb-1" id="eval_member_name">-</h5>
+              <div class="small text-muted">ID: <strong id="eval_juleha_id">-</strong></div>
+            </div>
+
+            <div class="form-group mb-3">
+              <label class="font-weight-bold text-dark small text-uppercase">Hasil Penilaian / Kelulusan <span class="text-danger">*</span></label>
+              <select name="evaluation_status" id="eval_status_select" class="form-control font-weight-bold" required>
+                <option value="Lulus Praktik">Lulus Praktik</option>
+                <option value="Dalam Pembimbingan">Dalam Pembimbingan</option>
+                <option value="Perlu Pengulangan">Perlu Pengulangan</option>
+              </select>
+            </div>
+
+            <div class="form-group mb-3">
+              <label class="font-weight-bold text-dark small text-uppercase">Catatan Evaluasi Sembelih <span class="text-danger">*</span></label>
+              <textarea name="description" id="eval_notes" class="form-control" rows="4" 
+                        placeholder="Tuliskan catatan teknis penyembelihan peserta ini (misal: teknik rebah, penarikan bilah, 3 saluran trakea/esofagus/jugular putus sempurna)..." required></textarea>
+              <small class="text-muted">Catatan ini akan tersimpan permanen dan dapat dilihat oleh peserta di profilnya.</small>
+            </div>
+
+          </div>
+          <div class="modal-footer bg-light border-top p-3 d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary btn-sm font-weight-bold px-3" data-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-success btn-sm font-weight-bold px-4" id="btnSaveEvaluasi">
+              <i class="fas fa-save mr-1"></i> Simpan Catatan Evaluasi
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <!-- Footer -->
@@ -440,10 +534,45 @@ $(document).ready(function() {
       { extend: "csv", text: "<i class='fas fa-file-csv mr-1'></i> CSV" },
       { extend: "excel", text: "<i class='fas fa-file-excel mr-1'></i> Excel" },
       { extend: "pdf", text: "<i class='fas fa-file-pdf mr-1'></i> PDF" },
-      { extend: "print", text: "<i class='fas fa-print mr-1'></i> Cetak" },
-      { extend: "colvis", text: "Kolom" }
+      { extend: "print", text: "<i class='fas fa-print mr-1'></i> Cetak" }
     ]
   }).buttons().container().appendTo('#tablePraktik_wrapper .col-md-6:eq(0)');
+});
+
+function openModalEvaluasi(id, julehaId, memberName, status, notes) {
+  $('#eval_id').val(id);
+  $('#eval_juleha_id').text(julehaId);
+  $('#eval_member_name').text(memberName);
+  $('#eval_status_select').val(status || 'Lulus Praktik');
+  $('#eval_notes').val(notes || '');
+  $('#modalEvaluasi').modal('show');
+}
+
+$('#formEvaluasiInstruktur').on('submit', function(e) {
+  e.preventDefault();
+  const $btn = $('#btnSaveEvaluasi');
+  $btn.html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...').prop('disabled', true);
+
+  $.ajax({
+    url: '/prakteks/save_evaluation_ajax',
+    type: 'POST',
+    data: $(this).serialize(),
+    dataType: 'json',
+    success: function(resp) {
+      $btn.html('<i class="fas fa-save mr-1"></i> Simpan Catatan Evaluasi').prop('disabled', false);
+      if (resp.status) {
+        alert(resp.message);
+        $('#modalEvaluasi').modal('hide');
+        window.location.reload();
+      } else {
+        alert(resp.message || 'Gagal menyimpan evaluasi.');
+      }
+    },
+    error: function() {
+      $btn.html('<i class="fas fa-save mr-1"></i> Simpan Catatan Evaluasi').prop('disabled', false);
+      alert('Terjadi kesalahan jaringan.');
+    }
+  });
 });
 
 function deletePraktik(id, julehaId) {

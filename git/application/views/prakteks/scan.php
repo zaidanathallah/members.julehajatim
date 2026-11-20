@@ -35,6 +35,13 @@
       padding: 16px 20px;
       border-bottom: none;
     }
+    .guide-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 20px;
+    }
     .scanner-box {
       background: #0f172a;
       border-radius: 14px;
@@ -109,14 +116,13 @@
       padding: 10px 18px;
       transition: all 0.2s ease;
     }
-    .role-btn-group .btn-check:checked + .btn-primary,
     .role-btn-group .btn.active {
       background-color: #059669 !important;
       border-color: #059669 !important;
       color: #ffffff !important;
       box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
     }
-    .animal-radio-badge {
+    .radio-pill-badge {
       cursor: pointer;
       padding: 8px 16px;
       border-radius: 30px;
@@ -132,11 +138,11 @@
       margin-right: 6px;
       margin-bottom: 8px;
     }
-    .animal-radio-badge:hover {
+    .radio-pill-badge:hover {
       border-color: #059669;
       color: #059669;
     }
-    input[type="radio"]:checked + .animal-radio-badge {
+    input[type="radio"]:checked + .radio-pill-badge {
       background: #ecfdf5;
       border-color: #059669;
       color: #064e3b;
@@ -180,11 +186,13 @@
     </ul>
 
     <ul class="navbar-nav ml-auto">
-      <li class="nav-item">
-        <a href="<?php echo base_url('prakteks/index'); ?>" class="btn btn-outline-secondary btn-sm rounded shadow-sm font-weight-bold px-3 mr-2">
-          <i class="fas fa-list mr-1"></i> Data Praktik
-        </a>
-      </li>
+      <?php if ($is_admin): ?>
+        <li class="nav-item">
+          <a href="<?php echo base_url('prakteks/index'); ?>" class="btn btn-outline-secondary btn-sm rounded shadow-sm font-weight-bold px-3 mr-2">
+            <i class="fas fa-list mr-1"></i> Data Praktik
+          </a>
+        </li>
+      <?php endif; ?>
       <li class="nav-item">
         <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-3">
           <i class="fas fa-sign-out-alt mr-1"></i> Keluar
@@ -205,9 +213,9 @@
         <div class="row align-items-center">
           <div class="col-sm-6">
             <h1 class="m-0 font-weight-bold" style="color: #064e3b; font-size: 1.55rem;">
-              <i class="fas fa-qrcode text-success mr-2"></i> Scan Presensi Praktik KTA
+              <i class="fas fa-qrcode text-success mr-2"></i> Presensi Praktik & Evaluasi Instruktur
             </h1>
-            <p class="text-muted small m-0 mt-1">Presensi dan Catatan Jam Terbang Praktik Penyembelihan & Instruktur</p>
+            <p class="text-muted small m-0 mt-1">Khusus Lokasi <strong>RPH TOW</strong> & <strong>RPH Kedurus</strong> Juleha Jawa Timur</p>
           </div>
           <div class="col-sm-6 mt-2 mt-sm-0">
             <ol class="breadcrumb float-sm-right bg-transparent p-0 m-0">
@@ -224,17 +232,31 @@
     <section class="content mt-3">
       <div class="container-fluid">
 
-        <!-- Info Notification Alert -->
-        <div class="alert alert-light border shadow-sm mb-4" style="border-radius: 12px; background: #ffffff;">
-          <div class="d-flex align-items-center">
-            <div class="mr-3 text-success" style="font-size: 1.8rem;">
-              <i class="fas fa-camera"></i>
+        <!-- Panduan Alur Scan & Waktu Scan yang Paling Tepat -->
+        <div class="guide-box">
+          <div class="d-flex align-items-start">
+            <div class="mr-3 text-success" style="font-size: 2rem;">
+              <i class="fas fa-info-circle"></i>
             </div>
             <div>
-              <h6 class="font-weight-bold mb-1" style="color: #064e3b;">Scanner Kamera Web Terpadu</h6>
-              <p class="text-muted small mb-0">
-                Arahkan kamera smartphone atau webcam ke <strong>QR Code pada Kartu Tanda Anggota (KTA)</strong> fisik Juleha Jatim. Data anggota akan terisi otomatis secara instan tanpa perlu download aplikasi APK lagi.
+              <h6 class="font-weight-bold mb-1" style="color: #064e3b;">
+                <i class="fas fa-stopwatch text-success mr-1"></i> Kapan Waktu Scan KTA yang Paling Tepat di RPH?
+              </h6>
+              <p class="small text-muted mb-2">
+                <strong>Alur Lapangan Terbaik:</strong> Dilakukan <strong>tepat saat / sesaat setelah peserta selesai melakukan praktik penyembelihan</strong> di hadapan Instruktur di RPH TOW atau RPH Kedurus.
               </p>
+              <div class="row">
+                <div class="col-md-6 mb-1">
+                  <div class="small text-dark font-weight-500">
+                    <span class="badge badge-success mr-1">Langkah 1</span> <strong>Instruktur Buka Scanner:</strong> Instruktur mengarahkan kamera ke QR KTA Peserta (atau ketik ID Peserta).
+                  </div>
+                </div>
+                <div class="col-md-6 mb-1">
+                  <div class="small text-dark font-weight-500">
+                    <span class="badge badge-primary mr-1">Langkah 2</span> <strong>Instruktur Beri Evaluasi:</strong> Instruktur memilih RPH (TOW/Kedurus), menentukan status lulus, dan mengisi catatan evaluasi yang langsung tertaut ke profil peserta.
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -268,7 +290,7 @@
                 <!-- Scanner Controls -->
                 <div class="mt-3 d-flex flex-wrap justify-content-center" style="gap: 8px;">
                   <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSwitchCamera" style="display: none;">
-                    <i class="fas fa-sync-alt mr-1"></i> Ganti Kamera (Depan/Belakang)
+                    <i class="fas fa-sync-alt mr-1"></i> Ganti Kamera Depan/Belakang
                   </button>
                   <button type="button" class="btn btn-outline-danger btn-sm" id="btnStopCamera" style="display: none;">
                     <i class="fas fa-stop mr-1"></i> Matikan Kamera
@@ -285,14 +307,20 @@
               </div>
             </div>
 
-            <!-- Card Petunjuk Cepat -->
+            <!-- Card Lokasi RPH Resmi -->
             <div class="card-modern p-3">
-              <h6 class="font-weight-bold text-success mb-2"><i class="fas fa-lightbulb mr-1"></i> Tips Presensi Praktik:</h6>
-              <ul class="small text-muted pl-3 mb-0" style="line-height: 1.6;">
-                <li>Bisa scan langsung QR Code dari kartu fisik KTA, atau dari layar HP anggota.</li>
-                <li>Jika kamera tidak tersedia, Anda bisa langsung ketik <strong>ID Juleha</strong> (misal: <code>SBY220006</code>) pada form di sebelah kanan.</li>
-                <li>Baik peserta praktik (Praktikan) maupun Instruktur dapat diabsen agar jam terbang tercatat di rekapitulasi.</li>
-              </ul>
+              <h6 class="font-weight-bold text-success mb-2"><i class="fas fa-map-marker-alt mr-1"></i> Lokasi RPH Resmi Juleha Jatim:</h6>
+              <div class="small text-muted mb-2">Penyelenggaraan dan pencatatan praktik resmi hanya berlaku di:</div>
+              <div class="d-flex flex-column" style="gap: 8px;">
+                <div class="p-2 border rounded bg-light d-flex align-items-center">
+                  <span class="badge badge-success px-2 py-1 mr-2 font-weight-bold">RPH 1</span>
+                  <strong>RPH TOW (Tambak Osowilangun, Surabaya)</strong>
+                </div>
+                <div class="p-2 border rounded bg-light d-flex align-items-center">
+                  <span class="badge badge-success px-2 py-1 mr-2 font-weight-bold">RPH 2</span>
+                  <strong>RPH Kedurus (Surabaya)</strong>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -300,8 +328,13 @@
           <!-- RIGHT COLUMN: Attendance Form & Member Preview -->
           <div class="col-lg-7 col-md-6">
             <div class="card-modern">
-              <div class="card-header-juleha">
-                <span class="font-weight-bold"><i class="fas fa-edit mr-2"></i> Form Presensi Praktik Penyembelihan</span>
+              <div class="card-header-juleha d-flex align-items-center justify-content-between">
+                <span class="font-weight-bold"><i class="fas fa-edit mr-2"></i> Form Presensi & Evaluasi Praktik</span>
+                <?php if ($can_evaluate): ?>
+                  <span class="badge badge-light px-2 py-1 font-weight-bold text-success"><i class="fas fa-user-shield mr-1"></i> Mode Instruktur</span>
+                <?php else: ?>
+                  <span class="badge badge-warning px-2 py-1 font-weight-bold text-dark"><i class="fas fa-user mr-1"></i> Mode Peserta</span>
+                <?php endif; ?>
               </div>
               <div class="card-body p-4">
 
@@ -328,129 +361,157 @@
                 <form id="formPresensi">
                   <input type="hidden" name="id" id="field_id" value="">
 
-                  <!-- 1. Juleha ID (Input & Scan Hook) -->
+                  <!-- 1. Peran: Uji Peserta Praktik vs Penugasan Instruktur -->
                   <div class="form-group mb-3">
                     <label class="font-weight-bold text-dark small text-uppercase">
-                      <i class="fas fa-id-card text-success mr-1"></i> ID Juleha Anggota <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group">
-                      <input type="text" class="form-control font-weight-bold" id="juleha_id" name="juleha_id" 
-                             placeholder="Contoh: SBY220006 atau scan QR KTA" 
-                             value="<?php echo htmlspecialchars($prefill_id ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>
-                      <div class="input-group-append">
-                        <button class="btn btn-outline-success font-weight-bold" type="button" id="btnCekAnggota">
-                          <i class="fas fa-search mr-1"></i> Cek Data
-                        </button>
-                      </div>
-                    </div>
-                    <small class="text-muted">ID terisi otomatis saat QR KTA di-scan, atau ketik ID lalu klik "Cek Data".</small>
-                  </div>
-
-                  <!-- 2. Peran: Praktikan vs Instruktur -->
-                  <div class="form-group mb-3">
-                    <label class="font-weight-bold text-dark small text-uppercase">
-                      <i class="fas fa-user-tag text-success mr-1"></i> Peran dalam Praktik <span class="text-danger">*</span>
+                      <i class="fas fa-user-tag text-success mr-1"></i> Jenis Presensi <span class="text-danger">*</span>
                     </label>
                     <div class="d-flex role-btn-group" style="gap: 12px;">
                       <button type="button" class="btn btn-outline-success flex-fill active" id="btnRolePraktikan" onclick="setRole('praktikan')">
-                        <i class="fas fa-cut mr-1"></i> Praktikan (Peserta)
+                        <i class="fas fa-cut mr-1"></i> Uji Peserta Praktik
                       </button>
                       <button type="button" class="btn btn-outline-primary flex-fill" id="btnRoleInstruktur" onclick="setRole('instruktur')">
-                        <i class="fas fa-chalkboard-teacher mr-1"></i> Instruktur (Pembimbing)
+                        <i class="fas fa-chalkboard-teacher mr-1"></i> Penugasan Instruktur
                       </button>
                     </div>
                     <input type="hidden" name="role" id="role" value="praktikan">
                   </div>
 
-                  <!-- 3. Instruktur Pendamping (Hanya jika peran = praktikan) -->
+                  <!-- 2. Juleha ID (Input & Scan Hook) -->
+                  <div class="form-group mb-3">
+                    <label class="font-weight-bold text-dark small text-uppercase" id="labelJulehaId">
+                      <i class="fas fa-id-card text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <input type="text" class="form-control font-weight-bold" id="juleha_id" name="juleha_id" 
+                             placeholder="Arahkan kamera ke QR KTA atau ketik ID (misal: SDA220065)" 
+                             value="<?php echo htmlspecialchars($prefill_id ?? ($can_evaluate ? '' : $logged_id), ENT_QUOTES, 'UTF-8'); ?>" required>
+                      <div class="input-group-append">
+                        <button class="btn btn-outline-success font-weight-bold" type="button" id="btnCekAnggota">
+                          <i class="fas fa-search mr-1"></i> Cek Anggota
+                        </button>
+                      </div>
+                    </div>
+                    <small class="text-muted" id="helpJulehaId">
+                      <?php if ($can_evaluate): ?>
+                        Scan KTA fisik peserta untuk otomatis men-tag peserta yang akan dievaluasi.
+                      <?php else: ?>
+                        ID Anda terisi otomatis untuk presensi kehadiran praktik di RPH.
+                      <?php endif; ?>
+                    </small>
+                  </div>
+
+                  <!-- 3. Instruktur Pembimbing -->
                   <div class="form-group mb-3" id="groupInstructor">
                     <label class="font-weight-bold text-dark small text-uppercase">
-                      <i class="fas fa-user-tie text-success mr-1"></i> Instruktur Pembimbing Praktik
+                      <i class="fas fa-user-tie text-success mr-1"></i> Instruktur Pembimbing / Penguji <span class="text-danger">*</span>
                     </label>
-                    <input type="text" class="form-control" id="instructor_id" name="instructor_id" 
-                           placeholder="Ketik ID Instruktur (misal: SBY220006) atau nama">
-                    <small class="text-muted">Instruktur Juleha yang mendampingi dan menguji pada sesi praktik ini.</small>
+                    <input type="text" class="form-control font-weight-bold text-dark" id="instructor_id" name="instructor_id" 
+                           placeholder="Ketik ID Instruktur (misal: SBY220006)"
+                           value="<?php echo htmlspecialchars($can_evaluate ? $logged_id : '', ENT_QUOTES, 'UTF-8'); ?>">
+                    <small class="text-muted">
+                      <?php if ($can_evaluate): ?>
+                        Tercatat sebagai Instruktur Penguji: <strong><?php echo htmlspecialchars($logged_name); ?> (<?php echo htmlspecialchars($logged_id); ?>)</strong>.
+                      <?php else: ?>
+                        Ketik ID Instruktur yang mendampingi dan menguji praktik Anda di RPH.
+                      <?php endif; ?>
+                    </small>
                   </div>
 
                   <div class="row">
-                    <!-- 4. Tanggal & Waktu Praktik -->
+                    <!-- 4. Pilihan RPH: HANYA TOW & KEDURUS -->
                     <div class="col-md-6">
                       <div class="form-group mb-3">
                         <label class="font-weight-bold text-dark small text-uppercase">
-                          <i class="far fa-calendar-alt text-success mr-1"></i> Waktu / Tanggal Praktik <span class="text-danger">*</span>
+                          <i class="fas fa-map-marker-alt text-success mr-1"></i> Lokasi RPH <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-control font-weight-bold" id="rph_id" name="rph_id" required>
+                          <option value="1">RPH TOW (Tambak Osowilangun)</option>
+                          <option value="2">RPH Kedurus</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- 5. Tanggal & Waktu Praktik -->
+                    <div class="col-md-6">
+                      <div class="form-group mb-3">
+                        <label class="font-weight-bold text-dark small text-uppercase">
+                          <i class="far fa-calendar-alt text-success mr-1"></i> Waktu / Tanggal <span class="text-danger">*</span>
                         </label>
                         <input type="datetime-local" class="form-control" id="praktekdate" name="praktekdate" 
                                value="<?php echo date('Y-m-d\TH:i'); ?>" required>
                       </div>
                     </div>
-
-                    <!-- 5. Lokasi / RPH -->
-                    <div class="col-md-6">
-                      <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark small text-uppercase">
-                          <i class="fas fa-map-marker-alt text-success mr-1"></i> Lokasi RPH / Tempat <span class="text-danger">*</span>
-                        </label>
-                        <select class="form-control" id="rph_id" name="rph_id" onchange="checkLocationInput()">
-                          <option value="1">RPH Pegirian (Surabaya)</option>
-                          <option value="2">RPH Kedurus (Surabaya)</option>
-                          <option value="3">RPH Kambing Kota (Surabaya)</option>
-                          <option value="4">RPH Krian Tradisional (Sidoarjo)</option>
-                          <option value="5">RPH Krian Modern (Sidoarjo)</option>
-                          <option value="7">RPH Malang</option>
-                          <?php if (!empty($rphs)): ?>
-                            <?php foreach($rphs as $r): ?>
-                              <?php if (!in_array($r->id, [1,2,3,4,5,7])): ?>
-                                <option value="<?php echo $r->id; ?>"><?php echo htmlspecialchars($r->name); ?></option>
-                              <?php endif; ?>
-                            <?php endforeach; ?>
-                          <?php endif; ?>
-                          <option value="custom">-- Lokasi Lainnya / Ketik Manual --</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Optional Custom Location Name -->
-                  <div class="form-group mb-3" id="groupCustomLocation" style="display: none;">
-                    <label class="font-weight-bold text-dark small text-uppercase">Nama Lokasi / Tempat Kegiatan</label>
-                    <input type="text" class="form-control" id="location_name" name="location_name" placeholder="Misal: Masjid Nasional Al-Akbar / Ponpes / Tempat Pelatihan">
                   </div>
 
                   <!-- 6. Jenis Hewan Sembelihan -->
                   <div class="form-group mb-3">
                     <label class="font-weight-bold text-dark small text-uppercase d-block">
-                      <i class="fas fa-paw text-success mr-1"></i> Jenis Sembelihan / Objek Praktik <span class="text-danger">*</span>
+                      <i class="fas fa-paw text-success mr-1"></i> Jenis Sembelihan <span class="text-danger">*</span>
                     </label>
                     <label>
                       <input type="radio" name="animal_type" value="Sapi" checked class="d-none">
-                      <span class="animal-radio-badge"><i class="fas fa-check-circle mr-1"></i> Sapi</span>
+                      <span class="radio-pill-badge"><i class="fas fa-check-circle mr-1"></i> Sapi</span>
                     </label>
                     <label>
                       <input type="radio" name="animal_type" value="Kambing / Domba" class="d-none">
-                      <span class="animal-radio-badge"><i class="fas fa-check-circle mr-1"></i> Kambing / Domba</span>
+                      <span class="radio-pill-badge"><i class="fas fa-check-circle mr-1"></i> Kambing / Domba</span>
                     </label>
                     <label>
                       <input type="radio" name="animal_type" value="Unggas" class="d-none">
-                      <span class="animal-radio-badge"><i class="fas fa-check-circle mr-1"></i> Unggas / Ayam</span>
+                      <span class="radio-pill-badge"><i class="fas fa-check-circle mr-1"></i> Unggas</span>
                     </label>
                     <label>
                       <input type="radio" name="animal_type" value="Pelatihan Umum" class="d-none">
-                      <span class="animal-radio-badge"><i class="fas fa-check-circle mr-1"></i> Pelatihan / Uji Kompetensi</span>
+                      <span class="radio-pill-badge"><i class="fas fa-check-circle mr-1"></i> Pelatihan / Uji</span>
                     </label>
                   </div>
 
-                  <!-- 7. Keterangan / Catatan Evaluasi -->
-                  <div class="form-group mb-4">
-                    <label class="font-weight-bold text-dark small text-uppercase">
-                      <i class="fas fa-sticky-note text-success mr-1"></i> Keterangan / Catatan Praktik
-                    </label>
-                    <textarea class="form-control" id="description" name="description" rows="2" 
-                              placeholder="Misal: Potong 3 saluran leher sempurna, uji pisau lancar, lulus praktik"></textarea>
+                  <!-- 7. Status Evaluasi & Catatan Evaluasi Instruktur -->
+                  <div class="form-group mb-4" id="groupEvaluation">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                      <label class="font-weight-bold text-dark small text-uppercase m-0">
+                        <i class="fas fa-clipboard-check text-success mr-1"></i> Catatan Evaluasi Instruktur
+                      </label>
+                      <?php if (!$can_evaluate): ?>
+                        <span class="badge badge-warning text-dark font-weight-bold"><i class="fas fa-lock mr-1"></i> Khusus Diisi Instruktur</span>
+                      <?php endif; ?>
+                    </div>
+
+                    <?php if ($can_evaluate): ?>
+                      <!-- Instruktur / Admin Input -->
+                      <div class="mb-2">
+                        <label class="small text-muted font-weight-bold text-uppercase d-block mb-1">Hasil Evaluasi / Kelulusan:</label>
+                        <label>
+                          <input type="radio" name="evaluation_status" value="Lulus Praktik" checked class="d-none">
+                          <span class="radio-pill-badge text-success"><i class="fas fa-check mr-1"></i> Lulus Praktik</span>
+                        </label>
+                        <label>
+                          <input type="radio" name="evaluation_status" value="Dalam Pembimbingan" class="d-none">
+                          <span class="radio-pill-badge text-warning"><i class="fas fa-user-clock mr-1"></i> Dalam Pembimbingan</span>
+                        </label>
+                        <label>
+                          <input type="radio" name="evaluation_status" value="Perlu Pengulangan" class="d-none">
+                          <span class="radio-pill-badge text-danger"><i class="fas fa-redo mr-1"></i> Perlu Pengulangan</span>
+                        </label>
+                      </div>
+
+                      <textarea class="form-control" id="description" name="description" rows="3" 
+                                placeholder="Tuliskan catatan evaluasi penyembelihan untuk peserta ini (misal: teknik rebah baik, bilah tajam, 3 saluran trakea/esofagus/jugular putus sempurna)..."></textarea>
+                      <small class="text-muted">Catatan evaluasi ini akan langsung tampil di halaman profil dan riwayat peserta yang di-tag.</small>
+                    <?php else: ?>
+                      <!-- Peserta Biasa (Read-Only) -->
+                      <div class="alert alert-light border small text-muted mb-2">
+                        <i class="fas fa-info-circle text-success mr-1"></i> <strong>Informasi untuk Peserta:</strong> Catatan evaluasi hanya dapat diisi oleh Instruktur Penguji. Setelah Anda menyembelih di RPH, Instruktur akan memberikan penilaian dan evaluasi yang akan tampil di profil Anda.
+                      </div>
+                      <textarea class="form-control bg-light" rows="2" readonly 
+                                placeholder="Menunggu penilaian dan catatan evaluasi dari Instruktur Pembimbing..."></textarea>
+                    <?php endif; ?>
                   </div>
 
                   <!-- Submit Action Button -->
                   <button type="submit" class="btn btn-submit-presensi btn-block" id="btnSubmitPresensi">
-                    <i class="fas fa-save mr-2"></i> Simpan Presensi Praktik
+                    <i class="fas fa-save mr-2"></i> <?php echo $can_evaluate ? 'Simpan Evaluasi & Presensi Peserta' : 'Kirim Presensi Kehadiran'; ?>
                   </button>
 
                 </form>
@@ -478,22 +539,20 @@
 <script src="/assets/adminlte/plugins/jquery/jquery.min.js"></script>
 <script src="/assets/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/adminlte/dist/js/adminlte.min.js"></script>
-<!-- HTML5 QR Code Scanner Library -->
 <script src="/assets/juleha/html5-qrcode.min.js"></script>
 
 <script>
 let html5QrCode = null;
 let isScanning = false;
-let currentFacingMode = "environment"; // default kamera belakang
+let currentFacingMode = "environment";
 
-// Play audio beep sound using Web Audio API on successful scan
 function playBeep() {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = "sine";
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // 880Hz (A5)
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
     gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
     osc.connect(gain);
@@ -505,7 +564,6 @@ function playBeep() {
   }
 }
 
-// Start live camera QR scanner
 function startCamera() {
   if (isScanning) return;
 
@@ -546,7 +604,6 @@ function startCamera() {
   });
 }
 
-// Stop live camera
 function stopCamera() {
   if (html5QrCode && isScanning) {
     html5QrCode.stop().then(() => {
@@ -562,7 +619,6 @@ function stopCamera() {
   }
 }
 
-// Switch between front and back camera
 $('#btnSwitchCamera').on('click', function() {
   currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
   if (isScanning && html5QrCode) {
@@ -573,12 +629,8 @@ $('#btnSwitchCamera').on('click', function() {
   }
 });
 
-// Scan success callback
-function onScanSuccess(decodedText, decodedResult) {
+function onScanSuccess(decodedText) {
   playBeep();
-  console.log("QR Code Scanned:", decodedText);
-
-  // Extract Juleha ID (Format: 3 letters + 6 digits, e.g. SBY220006)
   let cleanId = decodedText.trim();
   const match = cleanId.match(/([A-Za-z]{3}\d{6})/i);
   if (match) {
@@ -592,15 +644,11 @@ function onScanSuccess(decodedText, decodedResult) {
     </div>
   `).show();
 
-  // Load member info
   fetchMemberInfo(cleanId);
 }
 
-function onScanFailure(error) {
-  // Silent frame scan miss
-}
+function onScanFailure(error) {}
 
-// Scan from file input
 $('#qrFileInput').on('change', function(e) {
   if (e.target.files.length === 0) return;
   const imageFile = e.target.files[0];
@@ -614,11 +662,10 @@ $('#qrFileInput').on('change', function(e) {
       onScanSuccess(decodedText);
     })
     .catch(err => {
-      alert("Tidak ditemukan QR Code yang valid pada gambar tersebut. Silakan coba gambar lain.");
+      alert("Tidak ditemukan QR Code yang valid pada gambar tersebut.");
     });
 });
 
-// Fetch member data via AJAX
 function fetchMemberInfo(julehaId) {
   if (!julehaId) return;
 
@@ -630,7 +677,7 @@ function fetchMemberInfo(julehaId) {
     data: { juleha_id: julehaId },
     dataType: 'json',
     success: function(resp) {
-      $('#btnCekAnggota').html('<i class="fas fa-search mr-1"></i> Cek Data').prop('disabled', false);
+      $('#btnCekAnggota').html('<i class="fas fa-search mr-1"></i> Cek Anggota').prop('disabled', false);
       if (resp.status) {
         $('#previewJulehaId').text('ID: ' + resp.juleha_id);
         $('#previewRegion').text(resp.region ? ('Wilayah: ' + resp.region) : 'Jawa Timur');
@@ -646,13 +693,12 @@ function fetchMemberInfo(julehaId) {
       }
     },
     error: function() {
-      $('#btnCekAnggota').html('<i class="fas fa-search mr-1"></i> Cek Data').prop('disabled', false);
+      $('#btnCekAnggota').html('<i class="fas fa-search mr-1"></i> Cek Anggota').prop('disabled', false);
       alert('Gagal menghubungi server.');
     }
   });
 }
 
-// Button check member manually
 $('#btnCekAnggota').on('click', function() {
   const id = $('#juleha_id').val().trim();
   if (!id) {
@@ -662,7 +708,6 @@ $('#btnCekAnggota').on('click', function() {
   fetchMemberInfo(id);
 });
 
-// Enter key on Juleha ID triggers check
 $('#juleha_id').on('keypress', function(e) {
   if (e.which === 13) {
     e.preventDefault();
@@ -670,33 +715,21 @@ $('#juleha_id').on('keypress', function(e) {
   }
 });
 
-// Role switcher
 function setRole(role) {
   $('#role').val(role);
   if (role === 'instruktur') {
     $('#btnRoleInstruktur').addClass('active btn-primary').removeClass('btn-outline-primary');
     $('#btnRolePraktikan').removeClass('active btn-success').addClass('btn-outline-success');
     $('#groupInstructor').slideUp(200);
+    $('#labelJulehaId').html('<i class="fas fa-id-card text-success mr-1"></i> ID Instruktur yang Bertugas <span class="text-danger">*</span>');
   } else {
     $('#btnRolePraktikan').addClass('active btn-success').removeClass('btn-outline-success');
     $('#btnRoleInstruktur').removeClass('active btn-primary').addClass('btn-outline-primary');
     $('#groupInstructor').slideDown(200);
+    $('#labelJulehaId').html('<i class="fas fa-id-card text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
   }
 }
 
-// Location custom toggle
-function checkLocationInput() {
-  const val = $('#rph_id').val();
-  if (val === 'custom') {
-    $('#groupCustomLocation').slideDown(200);
-    $('#location_name').prop('required', true).focus();
-  } else {
-    $('#groupCustomLocation').slideUp(200);
-    $('#location_name').prop('required', false);
-  }
-}
-
-// Handle Form Submit
 $('#formPresensi').on('submit', function(e) {
   e.preventDefault();
 
@@ -707,7 +740,7 @@ $('#formPresensi').on('submit', function(e) {
   }
 
   const $btn = $('#btnSubmitPresensi');
-  $btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan Presensi...').prop('disabled', true);
+  $btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...').prop('disabled', true);
 
   $.ajax({
     url: '/prakteks/save_attendance_ajax',
@@ -715,12 +748,9 @@ $('#formPresensi').on('submit', function(e) {
     data: $(this).serialize(),
     dataType: 'json',
     success: function(resp) {
-      $btn.html('<i class="fas fa-save mr-2"></i> Simpan Presensi Praktik').prop('disabled', false);
+      $btn.html('<i class="fas fa-save mr-2"></i> Simpan Presensi').prop('disabled', false);
       if (resp.status) {
         alert(resp.message);
-        
-        // Reset form for next scan
-        $('#juleha_id').val('');
         $('#description').val('');
         $('#memberPreviewCard').slideUp(200);
         $('#scanFeedback').html(`
@@ -728,20 +758,17 @@ $('#formPresensi').on('submit', function(e) {
             <i class="fas fa-check-double mr-1"></i> Presensi berhasil disimpan! Siap scan kartu berikutnya.
           </div>
         `).show();
-
-        // Refresh member counters if camera is running
       } else {
         alert(resp.message || 'Gagal menyimpan data.');
       }
     },
     error: function() {
-      $btn.html('<i class="fas fa-save mr-2"></i> Simpan Presensi Praktik').prop('disabled', false);
-      alert('Terjadi kesalahan jaringan atau server saat menyimpan data.');
+      $btn.html('<i class="fas fa-save mr-2"></i> Simpan Presensi').prop('disabled', false);
+      alert('Terjadi kesalahan jaringan saat menyimpan data.');
     }
   });
 });
 
-// Auto check if prefill_id is present
 $(document).ready(function() {
   $('#btnStartCamera').on('click', startCamera);
   $('#btnStopCamera').on('click', stopCamera);

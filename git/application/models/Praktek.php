@@ -10,19 +10,29 @@ class Praktek extends CI_Model {
     }
 
     /**
-     * Pastikan skema tabel prakteks selalu up-to-date tanpa error di lokal maupun hosting cPanel
+     * Pastikan skema tabel prakteks dan rphs selalu up-to-date tanpa error di lokal maupun hosting cPanel
      */
     public function ensure_schema() {
         if (!$this->db->table_exists('prakteks')) {
             return;
         }
 
+        // 1. Pastikan RPH hanya RPH TOW dan RPH Kedurus
+        if ($this->db->table_exists('rphs')) {
+            $this->db->query("UPDATE `rphs` SET `name` = 'RPH TOW (Tambak Osowilangun)' WHERE `id` = 1");
+            $this->db->query("UPDATE `rphs` SET `name` = 'RPH Kedurus' WHERE `id` = 2");
+        }
+
+        // 2. Pastikan kolom-kolom prakteks lengkap
         $fields = $this->db->list_fields('prakteks');
         $need_migration = !in_array('role', $fields) 
                        || !in_array('instructor_id', $fields) 
                        || !in_array('animal_type', $fields) 
+                       || !in_array('evaluation_status', $fields)
                        || !in_array('location_name', $fields) 
-                       || !in_array('created_by', $fields);
+                       || !in_array('created_by', $fields)
+                       || !in_array('evaluated_by', $fields)
+                       || !in_array('evaluated_at', $fields);
 
         if ($need_migration) {
             $this->db->query("SET SESSION sql_mode = ''");
@@ -38,11 +48,20 @@ class Praktek extends CI_Model {
             if (!in_array('animal_type', $fields)) {
                 $this->db->query("ALTER TABLE `prakteks` ADD COLUMN `animal_type` VARCHAR(50) NOT NULL DEFAULT 'Sapi' AFTER `instructor_id`");
             }
+            if (!in_array('evaluation_status', $fields)) {
+                $this->db->query("ALTER TABLE `prakteks` ADD COLUMN `evaluation_status` VARCHAR(50) NOT NULL DEFAULT 'Lulus Praktik' AFTER `animal_type`");
+            }
             if (!in_array('location_name', $fields)) {
                 $this->db->query("ALTER TABLE `prakteks` ADD COLUMN `location_name` VARCHAR(150) NULL DEFAULT NULL AFTER `rph_id`");
             }
             if (!in_array('created_by', $fields)) {
                 $this->db->query("ALTER TABLE `prakteks` ADD COLUMN `created_by` VARCHAR(50) NULL DEFAULT NULL AFTER `description`");
+            }
+            if (!in_array('evaluated_by', $fields)) {
+                $this->db->query("ALTER TABLE `prakteks` ADD COLUMN `evaluated_by` VARCHAR(20) NULL DEFAULT NULL AFTER `created_by`");
+            }
+            if (!in_array('evaluated_at', $fields)) {
+                $this->db->query("ALTER TABLE `prakteks` ADD COLUMN `evaluated_at` DATETIME NULL DEFAULT NULL AFTER `evaluated_by`");
             }
         }
     }
@@ -77,21 +96,27 @@ class Praktek extends CI_Model {
      */
     public function save_attendance($data) {
         $praktekdate = !empty($data['praktekdate']) ? $data['praktekdate'] : date('Y-m-d H:i:s');
-        // Pastikan format datetime valid
         if (strlen($praktekdate) === 10) {
             $praktekdate .= ' ' . date('H:i:s');
         }
 
+        // RPH dibatasi khusus RPH TOW (1) dan RPH Kedurus (2)
+        $rph_id = (!empty($data['rph_id']) && (int)$data['rph_id'] === 2) ? 2 : 1;
+        $loc_name = ($rph_id === 2) ? 'RPH Kedurus' : 'RPH TOW (Tambak Osowilangun)';
+
         $insert_data = array(
-            'juleha_id'     => strtoupper(trim($data['juleha_id'] ?? '')),
-            'role'          => !empty($data['role']) ? strtolower(trim($data['role'])) : 'praktikan',
-            'instructor_id' => !empty($data['instructor_id']) ? strtoupper(trim($data['instructor_id'])) : NULL,
-            'rph_id'        => !empty($data['rph_id']) ? (int)$data['rph_id'] : NULL,
-            'location_name' => !empty($data['location_name']) ? trim($data['location_name']) : NULL,
-            'animal_type'   => !empty($data['animal_type']) ? trim($data['animal_type']) : 'Sapi',
-            'praktekdate'   => $praktekdate,
-            'description'   => !empty($data['description']) ? trim($data['description']) : NULL,
-            'created_by'    => !empty($data['created_by']) ? trim($data['created_by']) : NULL
+            'juleha_id'         => strtoupper(trim($data['juleha_id'] ?? '')),
+            'role'              => !empty($data['role']) ? strtolower(trim($data['role'])) : 'praktikan',
+            'instructor_id'     => !empty($data['instructor_id']) ? strtoupper(trim($data['instructor_id'])) : NULL,
+            'rph_id'            => $rph_id,
+            'location_name'     => $loc_name,
+            'animal_type'       => !empty($data['animal_type']) ? trim($data['animal_type']) : 'Sapi',
+            'evaluation_status' => !empty($data['evaluation_status']) ? trim($data['evaluation_status']) : 'Lulus Praktik',
+            'praktekdate'       => $praktekdate,
+            'description'       => !empty($data['description']) ? trim($data['description']) : NULL,
+            'created_by'        => !empty($data['created_by']) ? trim($data['created_by']) : NULL,
+            'evaluated_by'      => !empty($data['evaluated_by']) ? trim($data['evaluated_by']) : NULL,
+            'evaluated_at'      => !empty($data['evaluated_at']) ? $data['evaluated_at'] : NULL
         );
 
         if (!empty($data['id'])) {
@@ -103,6 +128,20 @@ class Praktek extends CI_Model {
             $new_id = $this->db->insert_id();
             return array('status' => $res, 'id' => $new_id, 'action' => 'insert');
         }
+    }
+
+    /**
+     * Khusus Instruktur / Admin: Update Catatan Evaluasi & Status Kelulusan Peserta
+     */
+    public function update_evaluation($id, $eval_status, $notes, $evaluator_id) {
+        $data = array(
+            'evaluation_status' => trim($eval_status),
+            'description'       => trim($notes),
+            'evaluated_by'      => strtoupper(trim($evaluator_id)),
+            'evaluated_at'      => date('Y-m-d H:i:s')
+        );
+        $this->db->where('id', (int)$id);
+        return $this->db->update('prakteks', $data);
     }
 
     /**
@@ -125,12 +164,16 @@ class Praktek extends CI_Model {
             inst.nickname as instructor_nickname,
             inst.firstname as instructor_firstname,
             inst.lastname as instructor_lastname,
+            eval.nickname as evaluator_nickname,
+            eval.firstname as evaluator_firstname,
+            eval.lastname as evaluator_lastname,
             r.name as rph_name,
-            COALESCE(NULLIF(p.location_name, ''), r.name, 'Lokasi Lain') as effective_location
+            COALESCE(NULLIF(p.location_name, ''), r.name, 'RPH TOW (Tambak Osowilangun)') as effective_location
         ");
         $this->db->from('prakteks p');
         $this->db->join('members m', 'm.juleha_id = p.juleha_id', 'left');
         $this->db->join('members inst', 'inst.juleha_id = p.instructor_id', 'left');
+        $this->db->join('members eval', 'eval.juleha_id = p.evaluated_by', 'left');
         $this->db->join('rphs r', 'r.id = p.rph_id', 'left');
         $this->db->where('p.id', (int)$id);
         return $this->db->get()->row();
@@ -149,12 +192,16 @@ class Praktek extends CI_Model {
             inst.nickname as instructor_nickname,
             inst.firstname as instructor_firstname,
             inst.lastname as instructor_lastname,
+            eval.nickname as evaluator_nickname,
+            eval.firstname as evaluator_firstname,
+            eval.lastname as evaluator_lastname,
             r.name as rph_name,
-            COALESCE(NULLIF(p.location_name, ''), r.name, 'Lokasi Lain') as effective_location
+            COALESCE(NULLIF(p.location_name, ''), r.name, 'RPH TOW (Tambak Osowilangun)') as effective_location
         ");
         $this->db->from('prakteks p');
         $this->db->join('members m', 'm.juleha_id = p.juleha_id', 'left');
         $this->db->join('members inst', 'inst.juleha_id = p.instructor_id', 'left');
+        $this->db->join('members eval', 'eval.juleha_id = p.evaluated_by', 'left');
         $this->db->join('rphs r', 'r.id = p.rph_id', 'left');
 
         if (!empty($filters['juleha_id'])) {
@@ -176,6 +223,10 @@ class Praktek extends CI_Model {
             $this->db->where('p.animal_type', $filters['animal_type']);
         }
 
+        if (!empty($filters['evaluation_status'])) {
+            $this->db->where('p.evaluation_status', $filters['evaluation_status']);
+        }
+
         if (!empty($filters['year'])) {
             $this->db->where("YEAR(p.praktekdate) = ", (int)$filters['year']);
         }
@@ -191,7 +242,6 @@ class Praktek extends CI_Model {
             $this->db->or_like('m.nickname', $search);
             $this->db->or_like('m.firstname', $search);
             $this->db->or_like('m.lastname', $search);
-            $this->db->or_like('p.location_name', $search);
             $this->db->or_like('p.description', $search);
             $this->db->group_end();
         }
@@ -219,11 +269,15 @@ class Praktek extends CI_Model {
             inst.nickname as instructor_nickname,
             inst.firstname as instructor_firstname,
             inst.lastname as instructor_lastname,
+            eval.nickname as evaluator_nickname,
+            eval.firstname as evaluator_firstname,
+            eval.lastname as evaluator_lastname,
             r.name as rph_name,
-            COALESCE(NULLIF(p.location_name, ''), r.name, 'Lokasi Lain') as effective_location
+            COALESCE(NULLIF(p.location_name, ''), r.name, 'RPH TOW (Tambak Osowilangun)') as effective_location
         ");
         $this->db->from('prakteks p');
         $this->db->join('members inst', 'inst.juleha_id = p.instructor_id', 'left');
+        $this->db->join('members eval', 'eval.juleha_id = p.evaluated_by', 'left');
         $this->db->join('rphs r', 'r.id = p.rph_id', 'left');
         $this->db->where('p.juleha_id', $clean_id);
         $this->db->where('(p.role = "praktikan" OR p.role IS NULL OR p.role = "")');
@@ -237,7 +291,7 @@ class Praktek extends CI_Model {
             m.firstname as member_firstname,
             m.lastname as member_lastname,
             r.name as rph_name,
-            COALESCE(NULLIF(p.location_name, ''), r.name, 'Lokasi Lain') as effective_location
+            COALESCE(NULLIF(p.location_name, ''), r.name, 'RPH TOW (Tambak Osowilangun)') as effective_location
         ");
         $this->db->from('prakteks p');
         $this->db->join('members m', 'm.juleha_id = p.juleha_id', 'left');
@@ -249,7 +303,7 @@ class Praktek extends CI_Model {
         $this->db->order_by('p.praktekdate', 'DESC');
         $as_instruktur = $this->db->get()->result();
 
-        // 3. Gabungkan semua sesi untuk tab timeline di profile
+        // 3. Gabungkan semua sesi
         $all_sessions = array_merge($as_praktikan, $as_instruktur);
         usort($all_sessions, function($a, $b) {
             return strtotime($b->praktekdate ?? 0) - strtotime($a->praktekdate ?? 0);
@@ -327,12 +381,12 @@ class Praktek extends CI_Model {
     }
 
     /**
-     * Ambil daftar RPH
+     * Daftar RPH Resmi: Hanya RPH TOW dan RPH Kedurus
      */
     public function get_rphs() {
-        if ($this->db->table_exists('rphs')) {
-            return $this->db->order_by('name', 'ASC')->get('rphs')->result();
-        }
-        return array();
+        return array(
+            (object)array('id' => 1, 'name' => 'RPH TOW (Tambak Osowilangun)'),
+            (object)array('id' => 2, 'name' => 'RPH Kedurus')
+        );
     }
 }

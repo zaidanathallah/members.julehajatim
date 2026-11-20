@@ -279,10 +279,10 @@
                     </div>
 
                     <div class="row align-items-center mt-3">
-                      <div class="col-md-6 mb-2 mb-md-0">
-                        <div class="text-muted small text-uppercase font-weight-500 mb-1">Lokasi / RPH</div>
+                      <div class="col-md-4 mb-2 mb-md-0">
+                        <div class="text-muted small text-uppercase font-weight-500 mb-1">Lokasi RPH</div>
                         <h6 class="font-weight-bold text-dark mb-0">
-                          <i class="fas fa-map-marker-alt text-danger mr-1"></i> <?php echo htmlspecialchars($s->effective_location ?? 'RPH Jatim'); ?>
+                          <i class="fas fa-map-marker-alt text-danger mr-1"></i> <?php echo ((int)$s->rph_id === 2) ? 'RPH Kedurus' : 'RPH TOW (Tambak Osowilangun)'; ?>
                         </h6>
                       </div>
                       <div class="col-md-3 col-6 mb-2 mb-md-0">
@@ -306,14 +306,34 @@
                           ?>
                         </span>
                       </div>
+                      <div class="col-md-2 mb-2 mb-md-0">
+                        <div class="text-muted small text-uppercase font-weight-500 mb-1">Status Evaluasi</div>
+                        <?php 
+                          $ev_st = $s->evaluation_status ?? 'Lulus Praktik';
+                          if ($ev_st === 'Lulus Praktik') {
+                            echo '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i> Lulus</span>';
+                          } elseif ($ev_st === 'Menunggu Evaluasi') {
+                            echo '<span class="badge badge-warning text-dark px-2 py-1"><i class="fas fa-clock mr-1"></i> Menunggu</span>';
+                          } else {
+                            echo '<span class="badge badge-info px-2 py-1">' . htmlspecialchars($ev_st) . '</span>';
+                          }
+                        ?>
+                      </div>
                     </div>
 
-                    <?php if (!empty($s->description)): ?>
-                      <div class="mt-3 pt-2 border-top">
-                        <div class="small text-muted font-weight-500"><i class="fas fa-comment-dots mr-1"></i> Catatan Evaluasi:</div>
-                        <div class="small text-dark mt-1"><?php echo htmlspecialchars($s->description); ?></div>
+                    <div class="mt-3 pt-2 border-top">
+                      <div class="small text-muted font-weight-500">
+                        <i class="fas fa-clipboard-check text-success mr-1"></i> Catatan Evaluasi Instruktur:
                       </div>
-                    <?php endif; ?>
+                      <div class="small text-dark mt-1 font-weight-500 p-2 bg-light rounded border">
+                        <?php echo htmlspecialchars($s->description ?: 'Belum ada catatan evaluasi tertulis dari Instruktur.'); ?>
+                      </div>
+                      <?php if (!empty($s->evaluator_nickname) || !empty($s->evaluated_by)): ?>
+                        <small class="text-muted d-block mt-1">
+                          <i class="fas fa-user-check text-success mr-1"></i> Dinilai oleh Instruktur: <strong><?php echo htmlspecialchars(trim(($s->evaluator_firstname ?? '') . ' ' . ($s->evaluator_lastname ?? '')) ?: $s->evaluator_nickname ?: $s->evaluated_by); ?></strong>
+                        </small>
+                      <?php endif; ?>
+                    </div>
 
                   </div>
                 <?php endforeach; ?>
