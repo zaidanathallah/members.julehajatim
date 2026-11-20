@@ -724,30 +724,51 @@ function saveImage($img, $juleha_id){
         $this->load->view('members/showqr',$data);
     }
     function show(){
+        $this->ensure_session_started();
+        $this->load->model('praktek');
         $juleha_id = $this->uri->segment(3);
         $obj = $this->member->get($juleha_id);
-        if($obj!=false){
-        $data = array(
-            'juleha_id'=>$juleha_id,
-            'obj'=>$obj['res'],
-         );
-        $this->load->view('members/show',$data);
-        }else{
-           // echo "NOMOR tidak valid";
+        if($obj!=false && !empty($obj['res'])){
+            $logged_id = $this->get_session_data('juleha_id');
+            $memberlevel = $this->get_session_data('memberlevel');
+            $is_admin = ($memberlevel !== null && (int)$memberlevel < 2);
+            $is_instructor = $this->praktek->is_instructor($juleha_id);
+            $viewer_can_evaluate = ($is_admin || (!empty($logged_id) && $this->praktek->is_instructor($logged_id)));
+
+            $data = array(
+                'juleha_id'           => $juleha_id,
+                'obj'                 => $obj['res'],
+                'is_admin'            => $is_admin,
+                'is_instructor'       => $is_instructor,
+                'viewer_can_evaluate' => $viewer_can_evaluate,
+                'logged_id'           => $logged_id,
+                'praktek_info'        => $this->praktek->get_by_member($juleha_id)
+            );
+            $this->load->view('members/show', $data);
+        } else {
             $this->load->view("members/inputidtoshowcard");
         }
     }
     function showcard(){
+        $this->ensure_session_started();
+        $this->load->model('praktek');
         $juleha_id = $this->uri->segment(3);
         $obj = $this->member->get($juleha_id);
-        if($obj!=false){
-        $data = array(
-            'juleha_id'=>$juleha_id,
-            'obj'=>$obj['res'],
-         );
-        $this->load->view('members/showcard',$data);
-        }else{
-            //echo "NOMOR tidak valid";
+        if($obj!=false && !empty($obj['res'])){
+            $logged_id = $this->get_session_data('juleha_id');
+            $memberlevel = $this->get_session_data('memberlevel');
+            $is_admin = ($memberlevel !== null && (int)$memberlevel < 2);
+            $is_instructor = $this->praktek->is_instructor($juleha_id);
+
+            $data = array(
+                'juleha_id'     => $juleha_id,
+                'obj'           => $obj['res'],
+                'is_admin'      => $is_admin,
+                'is_instructor' => $is_instructor,
+                'logged_id'     => $logged_id
+            );
+            $this->load->view('members/showcard', $data);
+        } else {
             $this->load->view("members/inputidtoshowcard");
         }
     }

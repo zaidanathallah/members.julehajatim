@@ -193,14 +193,25 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
                     </span>
                 </div>
 
+                <!-- Tombol Presensi & Evaluasi Praktik di RPH -->
+                <a href="<?php echo base_url('prakteks/scan/' . rawurlencode($obj->juleha_id)); ?>" class="btn btn-success btn-block shadow-sm font-weight-bold mb-2" style="border-radius: 10px; padding: 12px;">
+                    <i class="fas fa-clipboard-check mr-1"></i> Presensi & Evaluasi Praktik (RPH TOW / Kedurus)
+                </a>
+
+                <?php 
+                $is_admin = (isset($_SESSION['memberlevel']) && (int)$_SESSION['memberlevel'] < 2);
+                if ($is_admin): 
+                ?>
                 <button onclick="download()" class="btn btn-download-kta btn-block shadow-sm">
                     <i class="fas fa-download mr-1"></i> Download Kartu KTA (.PNG)
                 </button>
+                <?php endif; ?>
+
                 <a href="<?php echo base_url('members/uploder/' . rawurlencode($obj->juleha_id)); ?>" class="btn btn-ganti-foto btn-block shadow-sm mt-2">
                     <i class="fas fa-camera mr-1"></i> Ganti / Perbarui Foto KTA
                 </a>
                 <a href="<?php echo base_url(); ?>" class="btn btn-outline-secondary btn-back btn-block mt-2">
-                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Daftar Anggota
+                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Beranda
                 </a>
             </div>
         </div>
@@ -354,12 +365,17 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
         }
 
         function download() {
+            <?php if (!$is_admin): ?>
+            alert("Akses download KTA hanya tersedia untuk Admin dan Developer Juleha.");
+            return;
+            <?php else: ?>
             renderCard();
             var canvas = document.getElementById('canvas');
             var link = document.createElement('a');
             link.download = "KTA_JULEHA_" + julehaId + ".png";
             link.href = canvas.toDataURL("image/png");
             link.click();
+            <?php endif; ?>
         }
 
         // Trigger render berulang untuk menjamin tampil 100% mulus

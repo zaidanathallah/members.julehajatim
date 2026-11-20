@@ -58,6 +58,12 @@
                   <p>Rekap per Anggota</p>
                 </a>
               </li>
+              <li class="nav-item">
+                <a href="/prakteks/instruktur" class="nav-link <?php echo ($active['praktek_instruktur'] ?? ''); ?>">
+                  <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                  <p>Daftar Instruktur</p>
+                </a>
+              </li>
             </ul>
           </li>
           <?php } else { ?>

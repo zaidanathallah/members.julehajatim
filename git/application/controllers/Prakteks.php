@@ -39,6 +39,13 @@ class Prakteks extends CI_Controller {
         return ($level !== null && (int)$level < 2);
     }
 
+    private function is_instructor($juleha_id = null) {
+        if (empty($juleha_id)) {
+            $juleha_id = $this->get_session_data('juleha_id');
+        }
+        return $this->is_admin() || $this->praktek->is_instructor($juleha_id);
+    }
+
     /**
      * Dashboard Riwayat & Rekapitulasi Seluruh Praktik (Admin / Instruktur)
      */
@@ -48,8 +55,8 @@ class Prakteks extends CI_Controller {
             return;
         }
 
-        // Jika anggota biasa yang bukan admin, arahkan ke riwayat praktiknya sendiri
-        if (!$this->is_admin()) {
+        // Jika anggota biasa yang bukan admin dan bukan instruktur, arahkan ke riwayat praktiknya sendiri
+        if (!$this->is_admin() && !$this->is_instructor()) {
             redirect('/prakteks/my_history');
             return;
         }
@@ -65,14 +72,15 @@ class Prakteks extends CI_Controller {
         );
 
         $data = array(
-            'title'       => 'Rekapitulasi Presensi & Praktik - Juleha Jawa Timur',
-            'stats'       => $this->praktek->get_statistics(),
-            'records'     => $this->praktek->get_all_records($filters),
-            'rphs'        => $this->praktek->get_rphs(),
-            'filters'     => $filters,
-            'is_admin'    => $this->is_admin(),
-            'logged_id'   => $this->get_session_data('juleha_id'),
-            'active'      => array('list' => '', 'profile' => '', 'praktek' => 'active', 'praktek_index' => 'active')
+            'title'         => 'Rekapitulasi Presensi & Praktik - Juleha Jawa Timur',
+            'stats'         => $this->praktek->get_statistics(),
+            'records'       => $this->praktek->get_all_records($filters),
+            'rphs'          => $this->praktek->get_rphs(),
+            'filters'       => $filters,
+            'is_admin'      => $this->is_admin(),
+            'is_instructor' => $this->is_instructor(),
+            'logged_id'     => $this->get_session_data('juleha_id'),
+            'active'        => array('list' => '', 'profile' => '', 'praktek' => 'active', 'praktek_index' => 'active')
         );
 
         $this->load->view('prakteks/index', $data);
@@ -99,14 +107,18 @@ class Prakteks extends CI_Controller {
             }
         }
 
+        $is_instructor = $this->is_instructor($logged_id);
+        $can_evaluate = $this->is_admin() || $is_instructor;
+
         $data = array(
             'title'         => 'Scan Presensi Praktik KTA - Juleha Jawa Timur',
             'rphs'          => $this->praktek->get_rphs(),
             'prefill_id'    => $prefill_id,
             'is_admin'      => $this->is_admin(),
+            'is_instructor' => $is_instructor,
             'logged_id'     => $logged_id,
             'logged_name'   => $logged_name,
-            'can_evaluate'  => $this->is_admin(), // Admin dan Instruktur yang bertugas dapat mengevaluasi
+            'can_evaluate'  => $can_evaluate, // Admin dan Instruktur yang terdaftar dapat mengevaluasi
             'active'        => array('list' => '', 'profile' => '', 'praktek' => 'active', 'praktek_scan' => 'active')
         );
 
@@ -122,19 +134,104 @@ class Prakteks extends CI_Controller {
             return;
         }
 
-        if (!$this->is_admin()) {
+        if (!$this->is_admin() && !$this->is_instructor()) {
             redirect('/prakteks/my_history');
             return;
         }
 
         $data = array(
-            'title'       => 'Rekap Praktik per Anggota - Juleha Jawa Timur',
-            'stats'       => $this->praktek->get_statistics(),
-            'members'     => $this->praktek->get_member_rekap(),
-            'active'      => array('list' => '', 'profile' => '', 'praktek' => 'active', 'praktek_rekap' => 'active')
+            'title'         => 'Rekap Praktik per Anggota - Juleha Jawa Timur',
+            'stats'         => $this->praktek->get_statistics(),
+            'members'       => $this->praktek->get_member_rekap(),
+            'is_admin'      => $this->is_admin(),
+            'is_instructor' => $this->is_instructor(),
+            'active'        => array('list' => '', 'profile' => '', 'praktek' => 'active', 'praktek_rekap' => 'active')
         );
 
         $this->load->view('prakteks/rekap_anggota', $data);
+    }
+
+    /**
+     * Halaman Kelola Daftar Instruktur (Khusus Admin / Developer)
+     */
+    public function instruktur() {
+        if (!$this->is_logged_in() || !$this->is_admin()) {
+            redirect('/prakteks/index');
+            return;
+        }
+
+        $data = array(
+            'title'         => 'Kelola Daftar Instruktur Resmi - Juleha Jawa Timur',
+            'instructors'   => $this->praktek->get_instructors(),
+            'is_admin'      => $this->is_admin(),
+            'is_instructor' => $this->is_instructor(),
+            'active'        => array('list' => '', 'profile' => '', 'praktek' => 'active', 'praktek_instruktur' => 'active')
+        );
+
+        $this->load->view('prakteks/instruktur', $data);
+    }
+
+    /**
+     * AJAX: Tambah Instruktur Resmi
+     */
+    public function add_instructor_ajax() {
+        if (!$this->is_logged_in() || !$this->is_admin()) {
+            echo json_encode(array('status' => false, 'message' => 'Hanya Admin yang berwenang mengelola daftar instruktur.'));
+            return;
+        }
+
+        $juleha_id = strtoupper(trim($this->input->post('juleha_id')));
+        if (preg_match('/([A-Z]{3}[0-9]{6})/i', $juleha_id, $matches)) {
+            $juleha_id = strtoupper($matches[1]);
+        }
+
+        if (empty($juleha_id)) {
+            echo json_encode(array('status' => false, 'message' => 'ID Juleha wajib diisi.'));
+            return;
+        }
+
+        $m = $this->member->get($juleha_id);
+        if (empty($m['res'])) {
+            echo json_encode(array('status' => false, 'message' => 'Anggota dengan ID ' . $juleha_id . ' tidak ditemukan di database.'));
+            return;
+        }
+
+        $notes = trim($this->input->post('notes') ?: 'Instruktur Resmi Juleha Jatim');
+        $logged_id = $this->get_session_data('juleha_id');
+
+        $res = $this->praktek->add_instructor($juleha_id, $notes, $logged_id);
+        if ($res) {
+            $name = trim($m['res']->firstname . ' ' . $m['res']->lastname) ?: $m['res']->nickname;
+            echo json_encode(array(
+                'status'  => true,
+                'message' => 'Alhamdulillah, ' . $name . ' (' . $juleha_id . ') berhasil ditetapkan sebagai Instruktur Resmi Juleha Jatim!'
+            ));
+        } else {
+            echo json_encode(array('status' => false, 'message' => 'Gagal menambahkan instruktur.'));
+        }
+    }
+
+    /**
+     * AJAX: Hapus Instruktur Resmi
+     */
+    public function delete_instructor_ajax() {
+        if (!$this->is_logged_in() || !$this->is_admin()) {
+            echo json_encode(array('status' => false, 'message' => 'Hanya Admin yang berwenang mengelola daftar instruktur.'));
+            return;
+        }
+
+        $juleha_id = strtoupper(trim($this->input->post('juleha_id')));
+        if (empty($juleha_id)) {
+            echo json_encode(array('status' => false, 'message' => 'ID Instruktur tidak valid.'));
+            return;
+        }
+
+        $res = $this->praktek->delete_instructor($juleha_id);
+        if ($res) {
+            echo json_encode(array('status' => true, 'message' => 'Instruktur (' . $juleha_id . ') berhasil dihapus dari daftar instruktur aktif.'));
+        } else {
+            echo json_encode(array('status' => false, 'message' => 'Gagal menghapus instruktur.'));
+        }
     }
 
     /**
@@ -195,6 +292,8 @@ class Prakteks extends CI_Controller {
 
             $prac_summary = $this->praktek->get_by_member($clean_id);
 
+            $is_inst = $this->praktek->is_instructor($clean_id);
+
             echo json_encode(array(
                 'status'           => true,
                 'juleha_id'        => $clean_id,
@@ -205,7 +304,9 @@ class Prakteks extends CI_Controller {
                 'mstatus'          => $m->mstatus,
                 'photo_url'        => '/images/' . $clean_id . '.jpg',
                 'total_praktikan'  => $prac_summary['count_praktikan'],
-                'total_instruktur' => $prac_summary['count_instruktur']
+                'total_instruktur' => $prac_summary['count_instruktur'],
+                'is_instructor'    => $is_inst,
+                'is_admin'         => ($m->memberlevel !== null && (int)$m->memberlevel < 2)
             ));
         } else {
             echo json_encode(array(
@@ -267,6 +368,7 @@ class Prakteks extends CI_Controller {
 
         $logged_id = $this->get_session_data('juleha_id');
         $is_admin = $this->is_admin();
+        $is_instructor = $this->is_instructor($logged_id);
 
         $juleha_id = strtoupper(trim($this->input->post('juleha_id')));
         if (preg_match('/([A-Z]{3}[0-9]{6})/i', $juleha_id, $matches)) {
@@ -306,12 +408,15 @@ class Prakteks extends CI_Controller {
         }
 
         if ($role === 'praktikan') {
-            if ($is_admin || (!empty($instructor_id) && $instructor_id === $logged_id)) {
+            if ($is_admin || $is_instructor || (!empty($instructor_id) && $instructor_id === $logged_id)) {
                 // Instruktur yang sedang login mengevaluasi peserta
                 $eval_status = trim($this->input->post('evaluation_status') ?: 'Lulus Praktik');
                 $description = trim($this->input->post('description'));
                 $evaluated_by = $logged_id;
                 $evaluated_at = date('Y-m-d H:i:s');
+                if (empty($instructor_id)) {
+                    $instructor_id = $logged_id;
+                }
             } else {
                 // Peserta biasa check-in mandiri -> Tidak bisa mengisi evaluasi sendiri
                 $eval_status = 'Menunggu Evaluasi';
@@ -325,6 +430,7 @@ class Prakteks extends CI_Controller {
             $description = trim($this->input->post('description') ?: 'Penugasan Instruktur Pembimbing Praktik di RPH');
             $evaluated_by = $logged_id;
             $evaluated_at = date('Y-m-d H:i:s');
+            $instructor_id = $juleha_id;
         }
 
         $data = array(

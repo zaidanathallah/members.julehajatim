@@ -280,25 +280,36 @@
                   </div>
                   <div id="cameraPlaceholder" class="p-4 text-center text-white">
                     <i class="fas fa-qrcode fa-3x mb-3 text-success"></i>
-                    <p class="small text-white-50 mb-3">Klik tombol di bawah untuk menyalakan kamera scanner</p>
-                    <button type="button" class="btn btn-success btn-sm px-3 rounded-pill font-weight-bold" id="btnStartCamera">
-                      <i class="fas fa-video mr-1"></i> Buka Kamera Scanner
-                    </button>
+                    <p class="small text-white-50 mb-3">Arahkan kamera ke QR KTA fisik untuk scan langsung, atau ambil foto dengan kamera HP</p>
+                    <div class="d-flex flex-column align-items-center" style="gap: 10px;">
+                      <button type="button" class="btn btn-success btn-sm px-4 py-2 rounded-pill font-weight-bold shadow" id="btnStartCamera">
+                        <i class="fas fa-video mr-1"></i> Buka Kamera Scanner Live
+                      </button>
+                      <button type="button" class="btn btn-light btn-sm px-4 py-2 rounded-pill font-weight-bold shadow-sm" id="btnSnapNativeCamera">
+                        <i class="fas fa-camera mr-1 text-success"></i> Ambil Foto QR dengan Kamera HP
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 <!-- Scanner Controls -->
-                <div class="mt-3 d-flex flex-wrap justify-content-center" style="gap: 8px;">
-                  <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSwitchCamera" style="display: none;">
-                    <i class="fas fa-sync-alt mr-1"></i> Ganti Kamera Depan/Belakang
+                <div class="mt-3 d-flex flex-wrap justify-content-center align-items-center" style="gap: 8px;">
+                  <select id="cameraSelect" class="form-control form-control-sm" style="display: none; max-width: 200px; border-radius: 8px; font-weight: 500;">
+                  </select>
+                  <button type="button" class="btn btn-outline-success btn-sm" id="btnSwitchCamera" style="display: none;">
+                    <i class="fas fa-sync-alt mr-1"></i> Ganti Kamera
                   </button>
                   <button type="button" class="btn btn-outline-danger btn-sm" id="btnStopCamera" style="display: none;">
                     <i class="fas fa-stop mr-1"></i> Matikan Kamera
                   </button>
+                  <button type="button" class="btn btn-success btn-sm" id="btnSnapNativeCameraUnder">
+                    <i class="fas fa-camera mr-1"></i> Foto Kamera HP
+                  </button>
                   <label class="btn btn-outline-secondary btn-sm mb-0 cursor-pointer" title="Scan gambar foto QR dari galeri">
-                    <i class="fas fa-image mr-1"></i> Scan dari Foto
+                    <i class="fas fa-image mr-1"></i> Dari Galeri
                     <input type="file" id="qrFileInput" accept="image/*" style="display: none;">
                   </label>
+                  <input type="file" id="nativeCameraInput" accept="image/*" capture="environment" style="display: none;">
                 </div>
 
                 <!-- Scanned Result Flash Alert -->
@@ -343,15 +354,30 @@
                   <div class="d-flex align-items-center">
                     <img src="/assets/adminlte/dist/img/avatar5.png" id="previewPhoto" class="member-avatar-preview mr-3" alt="Foto KTA">
                     <div class="flex-grow-1">
-                      <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center justify-content-between flex-wrap gap-1">
                         <span class="badge badge-success px-2 py-1 font-weight-bold" id="previewJulehaId">ID: -</span>
                         <span class="badge badge-light border text-muted" id="previewRegion">Daerah: -</span>
                       </div>
                       <h5 class="font-weight-bold mb-1 mt-1" style="color: #064e3b;" id="previewName">-</h5>
-                      <div class="small text-muted d-flex flex-wrap gap-2">
+                      
+                      <!-- Badge Khusus Jika KTA Instruktur Resmi -->
+                      <div id="badgeKtaInstructor" class="my-1" style="display: none;">
+                        <span class="badge badge-warning text-dark font-weight-bold px-2 py-1">
+                          <i class="fas fa-award text-dark mr-1"></i> INSTRUKTUR RESMI JULEHA JATIM
+                        </span>
+                      </div>
+
+                      <div class="small text-muted d-flex flex-wrap gap-2 mt-1">
                         <span class="mr-3"><i class="fas fa-user-check text-success mr-1"></i> <span id="previewStatus">Aktif</span></span>
                         <span class="mr-3"><i class="fas fa-cut text-primary mr-1"></i> Praktik: <strong id="previewPraktikCnt">0</strong> kali</span>
                         <span><i class="fas fa-chalkboard-teacher text-warning mr-1"></i> Instruktur: <strong id="previewInstrukturCnt">0</strong> kali</span>
+                      </div>
+
+                      <!-- Quick Action jika yang di-scan adalah Instruktur -->
+                      <div id="quickInstructorActions" class="mt-2" style="display: none;">
+                        <button type="button" class="btn btn-outline-primary btn-sm font-weight-bold" onclick="setRole('instruktur')">
+                          <i class="fas fa-briefcase mr-1"></i> Presensi Penugasan Instruktur
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -544,7 +570,8 @@
 <script>
 let html5QrCode = null;
 let isScanning = false;
-let currentFacingMode = "environment";
+let availableCameras = [];
+let currentCameraIndex = 0;
 
 function playBeep() {
   try {
@@ -564,43 +591,103 @@ function playBeep() {
   }
 }
 
+function initCameras() {
+  if (typeof Html5Qrcode === 'undefined') {
+    return;
+  }
+  Html5Qrcode.getCameras().then(devices => {
+    if (devices && devices.length > 0) {
+      availableCameras = devices;
+      const $select = $('#cameraSelect');
+      $select.empty();
+      devices.forEach((camera, i) => {
+        let label = camera.label || ('Kamera ' + (i + 1));
+        $select.append(`<option value="${camera.id}">${label}</option>`);
+      });
+
+      // Cari kamera belakang / environment sebagai default
+      let backIndex = devices.findIndex(c => {
+        const l = (c.label || '').toLowerCase();
+        return l.includes('back') || l.includes('rear') || l.includes('belakang') || l.includes('environment');
+      });
+      if (backIndex === -1 && devices.length > 1) {
+        backIndex = devices.length - 1;
+      }
+      if (backIndex !== -1) {
+        currentCameraIndex = backIndex;
+        $select.val(devices[backIndex].id);
+      }
+      if (devices.length > 1) {
+        $select.show();
+        $('#btnSwitchCamera').show();
+      }
+    }
+  }).catch(err => {
+    console.warn("Camera enumeration check:", err);
+  });
+}
+
 function startCamera() {
   if (isScanning) return;
 
   $('#cameraPlaceholder').hide();
   $('#scannerOverlay').show();
-  $('#cameraStatusBadge').text('Kamera Aktif').removeClass('badge-light badge-danger').addClass('badge-success');
+  $('#cameraStatusBadge').text('Kamera Aktif').removeClass('badge-light badge-danger badge-warning').addClass('badge-success');
   $('#btnStopCamera').show();
-  $('#btnSwitchCamera').show();
+  if (availableCameras.length > 1) {
+    $('#btnSwitchCamera').show();
+    $('#cameraSelect').show();
+  }
 
   if (!html5QrCode) {
     html5QrCode = new Html5Qrcode("reader");
   }
 
   const config = {
-    fps: 10,
-    qrbox: { width: 220, height: 220 },
+    fps: 15,
+    qrbox: { width: 240, height: 240 },
     aspectRatio: 1.0
   };
 
+  let cameraSource = null;
+  const selectedDevId = $('#cameraSelect').val();
+  if (selectedDevId) {
+    cameraSource = selectedDevId;
+  } else if (availableCameras.length > 0) {
+    cameraSource = availableCameras[currentCameraIndex].id;
+  } else {
+    cameraSource = { facingMode: "environment" };
+  }
+
   html5QrCode.start(
-    { facingMode: currentFacingMode },
+    cameraSource,
     config,
     onScanSuccess,
     onScanFailure
   ).then(() => {
     isScanning = true;
   }).catch(err => {
-    console.error("Camera start error:", err);
-    $('#cameraStatusBadge').text('Kamera Error').removeClass('badge-success').addClass('badge-danger');
-    $('#cameraPlaceholder').show().html(`
-      <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
-      <p class="small text-white mb-2">Gagal mengakses kamera.<br>Pastikan izin kamera di browser telah diizinkan.</p>
-      <button class="btn btn-sm btn-outline-light" onclick="startCamera()"><i class="fas fa-redo mr-1"></i> Coba Lagi</button>
-    `);
-    $('#scannerOverlay').hide();
-    $('#btnStopCamera').hide();
-    $('#btnSwitchCamera').hide();
+    console.warn("Camera start primary failed, trying fallback:", err);
+    // Fallback: coba start dengan { facingMode: "environment" }
+    html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
+      .then(() => {
+        isScanning = true;
+      })
+      .catch(fallbackErr => {
+        console.error("Camera fallback failed:", fallbackErr);
+        $('#cameraStatusBadge').text('Streaming Terkendala').removeClass('badge-success').addClass('badge-warning');
+        $('#cameraPlaceholder').show().html(`
+          <i class="fas fa-camera fa-2x text-warning mb-2"></i>
+          <p class="small text-white mb-2">Streaming kamera terkendala izin browser / HTTPS.<br>Gunakan tombol <strong>Foto Kamera HP</strong> di bawah untuk scan langsung.</p>
+          <button class="btn btn-sm btn-light font-weight-bold" id="btnSnapNativeCameraFallback"><i class="fas fa-camera mr-1 text-success"></i> Ambil Foto QR dengan Kamera HP</button>
+        `);
+        $('#btnSnapNativeCameraFallback').on('click', function() {
+          $('#nativeCameraInput').click();
+        });
+        $('#scannerOverlay').hide();
+        $('#btnStopCamera').hide();
+        $('#btnSwitchCamera').hide();
+      });
   });
 }
 
@@ -610,9 +697,10 @@ function stopCamera() {
       isScanning = false;
       $('#scannerOverlay').hide();
       $('#cameraPlaceholder').show();
-      $('#cameraStatusBadge').text('Kamera Dimatikan').removeClass('badge-success').addClass('badge-light');
+      $('#cameraStatusBadge').text('Kamera Dimatikan').removeClass('badge-success badge-warning badge-danger').addClass('badge-light');
       $('#btnStopCamera').hide();
       $('#btnSwitchCamera').hide();
+      $('#cameraSelect').hide();
     }).catch(err => {
       console.error("Camera stop error:", err);
     });
@@ -620,7 +708,28 @@ function stopCamera() {
 }
 
 $('#btnSwitchCamera').on('click', function() {
-  currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+  if (availableCameras.length > 1) {
+    currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
+    $('#cameraSelect').val(availableCameras[currentCameraIndex].id);
+    if (isScanning && html5QrCode) {
+      html5QrCode.stop().then(() => {
+        isScanning = false;
+        startCamera();
+      });
+    }
+  } else {
+    if (isScanning && html5QrCode) {
+      html5QrCode.stop().then(() => {
+        isScanning = false;
+        html5QrCode.start({ facingMode: "user" }, { fps: 15, qrbox: { width: 240, height: 240 } }, onScanSuccess, onScanFailure)
+          .then(() => { isScanning = true; })
+          .catch(() => { startCamera(); });
+      });
+    }
+  }
+});
+
+$('#cameraSelect').on('change', function() {
   if (isScanning && html5QrCode) {
     html5QrCode.stop().then(() => {
       isScanning = false;
@@ -629,9 +738,53 @@ $('#btnSwitchCamera').on('click', function() {
   }
 });
 
+// Trigger Kamera HP Asli (100% Berfungsi di semua smartphone)
+$('#btnSnapNativeCamera, #btnSnapNativeCameraUnder').on('click', function() {
+  $('#nativeCameraInput').click();
+});
+
+$('#nativeCameraInput').on('change', function(e) {
+  if (!e.target.files || e.target.files.length === 0) return;
+  const file = e.target.files[0];
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("reader");
+  }
+  $('#cameraStatusBadge').text('Memproses Foto...').removeClass('badge-light').addClass('badge-warning');
+  html5QrCode.scanFile(file, true)
+    .then(decodedText => {
+      $('#cameraStatusBadge').text('Kamera Siap').removeClass('badge-warning').addClass('badge-light');
+      onScanSuccess(decodedText);
+    })
+    .catch(err => {
+      $('#cameraStatusBadge').text('Kamera Siap').removeClass('badge-warning').addClass('badge-light');
+      alert("QR Code tidak terbaca dari foto tersebut. Silakan ambil foto ulang dengan jarak lebih dekat dan pastikan kotak QR Code KTA terlihat jelas dan tegak.");
+    });
+});
+
+$('#qrFileInput').on('change', function(e) {
+  if (!e.target.files || e.target.files.length === 0) return;
+  const imageFile = e.target.files[0];
+
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("reader");
+  }
+
+  $('#cameraStatusBadge').text('Memproses Gambar...').removeClass('badge-light').addClass('badge-warning');
+  html5QrCode.scanFile(imageFile, true)
+    .then(decodedText => {
+      $('#cameraStatusBadge').text('Kamera Siap').removeClass('badge-warning').addClass('badge-light');
+      onScanSuccess(decodedText);
+    })
+    .catch(err => {
+      $('#cameraStatusBadge').text('Kamera Siap').removeClass('badge-warning').addClass('badge-light');
+      alert("Tidak ditemukan QR Code yang valid pada gambar tersebut.");
+    });
+});
+
 function onScanSuccess(decodedText) {
   playBeep();
   let cleanId = decodedText.trim();
+  // Tangani scan dari URL https://members.julehajatim.com/members/show/SBY220006 atau ID langsung
   const match = cleanId.match(/([A-Za-z]{3}\d{6})/i);
   if (match) {
     cleanId = match[1].toUpperCase();
@@ -640,7 +793,7 @@ function onScanSuccess(decodedText) {
   $('#juleha_id').val(cleanId);
   $('#scanFeedback').html(`
     <div class="alert alert-success py-2 px-3 small font-weight-bold mb-0">
-      <i class="fas fa-check-circle mr-1"></i> Terdeteksi KTA: <strong>${cleanId}</strong>
+      <i class="fas fa-check-circle mr-1"></i> Berhasil Scan QR KTA: <strong>${cleanId}</strong>
     </div>
   `).show();
 
@@ -648,23 +801,6 @@ function onScanSuccess(decodedText) {
 }
 
 function onScanFailure(error) {}
-
-$('#qrFileInput').on('change', function(e) {
-  if (e.target.files.length === 0) return;
-  const imageFile = e.target.files[0];
-
-  if (!html5QrCode) {
-    html5QrCode = new Html5Qrcode("reader");
-  }
-
-  html5QrCode.scanFile(imageFile, true)
-    .then(decodedText => {
-      onScanSuccess(decodedText);
-    })
-    .catch(err => {
-      alert("Tidak ditemukan QR Code yang valid pada gambar tersebut.");
-    });
-});
 
 function fetchMemberInfo(julehaId) {
   if (!julehaId) return;
@@ -686,6 +822,22 @@ function fetchMemberInfo(julehaId) {
         $('#previewPraktikCnt').text(resp.total_praktikan || 0);
         $('#previewInstrukturCnt').text(resp.total_instruktur || 0);
         $('#previewPhoto').attr('src', resp.photo_url + '?t=' + new Date().getTime());
+
+        // Cek pengakuan Instruktur
+        if (resp.is_instructor) {
+          $('#badgeKtaInstructor').show();
+          $('#quickInstructorActions').show();
+          $('#scanFeedback').html(`
+            <div class="alert alert-warning py-2 px-3 small font-weight-bold mb-0 text-dark">
+              <i class="fas fa-award text-warning mr-1"></i> Terdeteksi KTA Instruktur Resmi: <strong>${resp.name} (${resp.juleha_id})</strong>
+            </div>
+          `).show();
+        } else {
+          $('#badgeKtaInstructor').hide();
+          $('#quickInstructorActions').hide();
+          setRole('praktikan');
+        }
+
         $('#memberPreviewCard').slideDown(250);
       } else {
         $('#memberPreviewCard').slideUp(200);
@@ -770,6 +922,7 @@ $('#formPresensi').on('submit', function(e) {
 });
 
 $(document).ready(function() {
+  initCameras();
   $('#btnStartCamera').on('click', startCamera);
   $('#btnStopCamera').on('click', stopCamera);
 

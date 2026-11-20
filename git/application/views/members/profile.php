@@ -470,10 +470,15 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
 
               <!-- Quick Action Buttons -->
               <div class="d-flex flex-column" style="gap: 10px;">
-                <!-- Main KTA Download Button (Triggers Modern KTA Generator) -->
+                <?php 
+                $is_admin = (isset($_SESSION['memberlevel']) && (int)$_SESSION['memberlevel'] < 2);
+                if ($is_admin): 
+                ?>
+                <!-- Main KTA Download Button (Khusus Admin & Developer) -->
                 <button type="button" class="btn btn-action-kta btn-block" id="btnDownloadKTA">
                   <i class="fas fa-id-card mr-1"></i> Download KTA Resmi (.PNG)
                 </button>
+                <?php endif; ?>
 
                 <!-- Scan Presensi Praktik KTA -->
                 <a href="<?php echo base_url('prakteks/scan/' . rawurlencode($juleha_id)); ?>" class="btn btn-action-kta btn-block" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
@@ -722,9 +727,15 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
                   </div>
 
                   <div class="text-center mt-3">
+                    <?php if ($is_admin): ?>
                     <button type="button" onclick="downloadModernKTA()" class="btn btn-action-kta px-4 py-2 font-weight-bold mr-2 mb-2">
                       <i class="fas fa-download mr-1"></i> Download Kartu KTA (.PNG)
                     </button>
+                    <?php else: ?>
+                    <div class="alert alert-light border small text-muted text-center mb-3" style="border-radius: 10px;">
+                      <i class="fas fa-info-circle text-success mr-1"></i> <strong>Informasi KTA:</strong> Kartu Tanda Anggota (KTA) fisik resmi diterbitkan dan dicetak secara terkoordinir oleh Pengurus DPW Juleha Jawa Timur.
+                    </div>
+                    <?php endif; ?>
                     <a href="<?php echo base_url('members/showcard/' . rawurlencode($juleha_id)); ?>" target="_blank" class="btn btn-outline-juleha px-4 py-2 font-weight-bold mr-2 mb-2">
                       <i class="fas fa-external-link-alt mr-1"></i> Buka Halaman KTA Penuh
                     </a>
@@ -960,8 +971,12 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
     }
   }
 
-  // 4. Download KTA Fungsi Global
+  // 4. Download KTA Fungsi Global (Khusus Admin & Developer)
   window.downloadModernKTA = function() {
+    <?php if (!$is_admin): ?>
+    alert("Akses download KTA hanya tersedia untuk Admin dan Developer Juleha.");
+    return;
+    <?php else: ?>
     renderModernCard();
     var canvas = document.getElementById("canvasKTA");
     if (!canvas) return;
@@ -969,6 +984,7 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
     link.download = "KTA_JULEHA_" + currentJulehaId + ".png";
     link.href = canvas.toDataURL("image/png");
     link.click();
+    <?php endif; ?>
   };
 
   // Tombol Download KTA di Card Profil

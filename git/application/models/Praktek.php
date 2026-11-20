@@ -23,6 +23,27 @@ class Praktek extends CI_Model {
             $this->db->query("UPDATE `rphs` SET `name` = 'RPH Kedurus' WHERE `id` = 2");
         }
 
+        // 2. Pastikan tabel daftar instruktur resmi tersedia
+        if (!$this->db->table_exists('praktek_instructors')) {
+            $this->db->query("CREATE TABLE IF NOT EXISTS `praktek_instructors` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `juleha_id` VARCHAR(30) NOT NULL UNIQUE,
+                `status` VARCHAR(20) NOT NULL DEFAULT 'active',
+                `sk_number` VARCHAR(100) NULL,
+                `notes` TEXT NULL,
+                `created_by` VARCHAR(30) NULL,
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                KEY `idx_juleha_id` (`juleha_id`),
+                KEY `idx_status` (`status`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            // Masukkan instruktur awal terdaftar
+            $default_instructors = array('SBY220006', 'SBY220033');
+            foreach ($default_instructors as $inst_id) {
+                $this->db->query("INSERT IGNORE INTO `praktek_instructors` (`juleha_id`, `status`, `notes`, `created_by`, `created_at`) VALUES (" . $this->db->escape($inst_id) . ", 'active', 'Instruktur Resmi Juleha Jatim', 'SYSTEM', NOW())");
+            }
+        }
+
         // 2. Pastikan kolom-kolom prakteks lengkap
         $fields = $this->db->list_fields('prakteks');
         $need_migration = !in_array('role', $fields) 
@@ -378,6 +399,116 @@ class Praktek extends CI_Model {
             'unique_members'     => (int)$unique_members,
             'unique_instructors' => (int)$unique_instructors
         );
+    }
+
+    /**
+     * Cek apakah suatu ID Juleha terdaftar resmi sebagai Instruktur
+     */
+    public function is_instructor($juleha_id) {
+        if (empty($juleha_id)) {
+            return false;
+        }
+        $clean_id = strtoupper(trim($juleha_id));
+
+        // 1. Cek di tabel praktek_instructors
+        if ($this->db->table_exists('praktek_instructors')) {
+            $row = $this->db->where('juleha_id', $clean_id)
+                            ->where('status', 'active')
+                            ->get('praktek_instructors')
+                            ->row();
+            if (!empty($row)) {
+                return true;
+            }
+        }
+
+        // 2. Cek apakah level admin / developer di tabel members
+        $m = $this->db->select('memberlevel')->where('juleha_id', $clean_id)->get('members')->row();
+        if (!empty($m) && $m->memberlevel !== null && (int)$m->memberlevel < 2) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Ambil seluruh daftar instruktur resmi dengan detail nama dan statistik membimbing
+     */
+    public function get_instructors() {
+        if (!$this->db->table_exists('praktek_instructors')) {
+            return array();
+        }
+
+        $sql = "
+            SELECT 
+                pi.id as instructor_record_id,
+                pi.juleha_id,
+                pi.status as instructor_status,
+                pi.sk_number,
+                pi.notes as instructor_notes,
+                pi.created_at as appointed_at,
+                m.firstname,
+                m.lastname,
+                m.nickname,
+                m.region,
+                m.position,
+                m.phone,
+                m.mstatus,
+                COALESCE(eval_cnt.total_evaluasi, 0) as total_evaluasi,
+                COALESCE(duty_cnt.total_tugas, 0) as total_tugas
+            FROM praktek_instructors pi
+            LEFT JOIN members m ON m.juleha_id = pi.juleha_id
+            LEFT JOIN (
+                SELECT instructor_id, COUNT(*) as total_evaluasi 
+                FROM prakteks 
+                WHERE instructor_id IS NOT NULL AND instructor_id != ''
+                GROUP BY instructor_id
+            ) eval_cnt ON eval_cnt.instructor_id = pi.juleha_id
+            LEFT JOIN (
+                SELECT juleha_id, COUNT(*) as total_tugas 
+                FROM prakteks 
+                WHERE role = 'instruktur'
+                GROUP BY juleha_id
+            ) duty_cnt ON duty_cnt.juleha_id = pi.juleha_id
+            ORDER BY pi.status ASC, pi.id ASC
+        ";
+        return $this->db->query($sql)->result();
+    }
+
+    /**
+     * Tambah instruktur baru ke daftar
+     */
+    public function add_instructor($juleha_id, $notes = '', $created_by = '') {
+        $clean_id = strtoupper(trim($juleha_id));
+        if (empty($clean_id)) {
+            return false;
+        }
+
+        $exist = $this->db->where('juleha_id', $clean_id)->get('praktek_instructors')->row();
+        if (!empty($exist)) {
+            $this->db->where('id', $exist->id)->update('praktek_instructors', array(
+                'status'     => 'active',
+                'notes'      => $notes,
+                'created_by' => $created_by
+            ));
+            return $exist->id;
+        } else {
+            $this->db->insert('praktek_instructors', array(
+                'juleha_id'   => $clean_id,
+                'status'      => 'active',
+                'notes'       => $notes,
+                'created_by'  => $created_by,
+                'created_at'  => date('Y-m-d H:i:s')
+            ));
+            return $this->db->insert_id();
+        }
+    }
+
+    /**
+     * Hapus instruktur dari daftar
+     */
+    public function delete_instructor($juleha_id) {
+        $clean_id = strtoupper(trim($juleha_id));
+        return $this->db->where('juleha_id', $clean_id)->delete('praktek_instructors');
     }
 
     /**
