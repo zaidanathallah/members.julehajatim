@@ -10,6 +10,7 @@ Class Members extends CI_Controller{
         $this->load->model('portofolio');
         $this->load->model('certificate');
         $this->load->model('training');
+        $this->load->model('praktek');
         $this->load->helper('inflector');
         $this->load->library('julehalibs');
         $this->load->model('region');
@@ -424,20 +425,22 @@ Class Members extends CI_Controller{
             redirect('/members/login');
             return;
         }
-        $memberId = $this->get_session_data('id');
-        $julehaId = $this->get_session_data('juleha_id');
-        if ($memberId) {
-            $obj = $this->member->get($julehaId);
+        $paramId = $this->uri->segment(3);
+        $julehaId = !empty($paramId) ? $paramId : $this->get_session_data('juleha_id');
+        $obj = $this->member->get($julehaId);
+        if (!empty($obj['res'])) {
+            $memberId = $obj['res']->id;
             $data = array(
                 'juleha_id' => $julehaId,
-                'obj'=>$obj['res'],
-                'portofolio'=>$this->portofolio->gets($memberId),
-                'certificate'=>$this->certificate->gets($memberId),
-                'training'=>$this->training->gets($memberId),
-                'active'=>array('list'=>'','profile'=>'active')
+                'obj' => $obj['res'],
+                'portofolio' => $this->portofolio->gets($memberId),
+                'certificate' => $this->certificate->gets($memberId),
+                'training' => $this->training->gets($memberId),
+                'praktek' => $this->praktek->get_by_member($julehaId),
+                'active' => array('list' => '', 'profile' => 'active')
             );
-            $this->load->view('members/profile',$data);    
-        }else{
+            $this->load->view('members/profile', $data);    
+        } else {
             redirect('/members/login');
         }
     }

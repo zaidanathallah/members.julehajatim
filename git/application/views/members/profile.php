@@ -475,6 +475,11 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
                   <i class="fas fa-id-card mr-1"></i> Download KTA Resmi (.PNG)
                 </button>
 
+                <!-- Scan Presensi Praktik KTA -->
+                <a href="<?php echo base_url('prakteks/scan/' . rawurlencode($juleha_id)); ?>" class="btn btn-action-kta btn-block" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                  <i class="fas fa-qrcode mr-1"></i> Scan Presensi Praktik KTA
+                </a>
+
                 <!-- Open Official KTA Page in New Tab -->
                 <a href="<?php echo base_url('members/showcard/' . rawurlencode($juleha_id)); ?>" target="_blank" class="btn btn-outline-juleha btn-block">
                   <i class="fas fa-external-link-alt mr-1"></i> Buka Halaman KTA Penuh
@@ -490,10 +495,10 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
                   <i class="fas fa-key mr-1"></i> Ubah Password Akun
                 </button>
 
-                <!-- Download Android APK -->
-                <a class="btn btn-outline-neutral btn-block" id="btnDownloadApp" href="/apps/JulehaJawaTimur-v1.2.apk">
-                  <i class="fab fa-android text-success mr-1"></i> Download JulehaJatim App (APK)
-                </a>
+                <!-- Info & Download Android APK -->
+                <button type="button" class="btn btn-outline-neutral btn-block" data-toggle="modal" data-target="#modalApkInfo">
+                  <i class="fab fa-android text-success mr-1"></i> Info Aplikasi Juleha / APK
+                </button>
               </div>
             </div>
 
@@ -552,6 +557,12 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
                   <a class="nav-link" id="tab-pelatihan-btn" data-toggle="pill" href="#pelatihan" role="tab">
                     <i class="fas fa-chalkboard-teacher mr-1"></i> Pelatihan 
                     <span class="badge badge-light ml-1"><?php echo (int)($training['cnt'] ?? 0); ?></span>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="tab-praktik-btn" data-toggle="pill" href="#praktik" role="tab">
+                    <i class="fas fa-cut mr-1"></i> Praktik Sembelih 
+                    <span class="badge badge-light ml-1"><?php echo (int)($praktek['total_count'] ?? 0); ?></span>
                   </a>
                 </li>
                 <li class="nav-item">
@@ -629,6 +640,76 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
                   <?php endif; ?>
                 </div>
 
+                <!-- 3.1. PRAKTIK SEMBELIH TAB -->
+                <div class="tab-pane fade" id="praktik" role="tabpanel">
+                  <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <div>
+                      <h6 class="font-weight-bold mb-1" style="color: #064e3b;">
+                        <i class="fas fa-history text-success mr-1"></i> Jam Terbang Praktik Sembelih
+                      </h6>
+                      <small class="text-muted">Total terdata: <strong><?php echo (int)($praktek['count_praktikan'] ?? 0); ?></strong> kali Praktikan &bull; <strong><?php echo (int)($praktek['count_instruktur'] ?? 0); ?></strong> kali Instruktur</small>
+                    </div>
+                    <div class="mt-2 mt-sm-0">
+                      <a href="<?php echo base_url('prakteks/my_history/' . rawurlencode($juleha_id)); ?>" class="btn btn-outline-success btn-sm font-weight-bold mr-1">
+                        <i class="fas fa-external-link-alt mr-1"></i> Riwayat Lengkap
+                      </a>
+                      <a href="<?php echo base_url('prakteks/scan/' . rawurlencode($juleha_id)); ?>" class="btn btn-success btn-sm font-weight-bold">
+                        <i class="fas fa-plus mr-1"></i> Tambah Presensi
+                      </a>
+                    </div>
+                  </div>
+
+                  <?php 
+                    $hari_id = array('Sunday'=>'Minggu','Monday'=>'Senin','Tuesday'=>'Selasa','Wednesday'=>'Rabu','Thursday'=>'Kamis','Friday'=>'Jumat','Saturday'=>'Sabtu');
+                    $bulan_id = array(1=>'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des');
+                    $prac_list = $praktek['all'] ?? array();
+                  ?>
+
+                  <?php if (!empty($prac_list) && count($prac_list) > 0): ?>
+                    <?php foreach($prac_list as $pk): 
+                      $ts = strtotime($pk->praktekdate ?? 0);
+                      $day_str = ($ts > 0) ? ($hari_id[date('l', $ts)] ?? '') : '-';
+                      $date_str = ($ts > 0) ? (date('d', $ts) . ' ' . ($bulan_id[(int)date('m', $ts)] ?? '') . ' ' . date('Y', $ts)) : '-';
+                      $time_str = ($ts > 0 && date('H:i', $ts) !== '00:00') ? (date('H:i', $ts) . ' WIB') : '';
+                      $is_inst = (($pk->role ?? '') === 'instruktur' || ($pk->instructor_id ?? '') === $juleha_id);
+                    ?>
+                      <div class="entry-card">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                          <div class="entry-badge-date mb-0">
+                            <i class="far fa-calendar-check"></i> <?php echo $day_str . ', ' . $date_str; ?> <?php echo $time_str ? '('.$time_str.')' : ''; ?>
+                          </div>
+                          <?php if ($is_inst): ?>
+                            <span class="badge badge-primary px-2 py-1"><i class="fas fa-chalkboard-teacher mr-1"></i> Instruktur</span>
+                          <?php else: ?>
+                            <span class="badge badge-success px-2 py-1"><i class="fas fa-cut mr-1"></i> Praktikan</span>
+                          <?php endif; ?>
+                        </div>
+                        <h6 class="entry-title mb-1">
+                          <i class="fas fa-map-marker-alt text-danger mr-1"></i> <?php echo htmlspecialchars($pk->effective_location ?? 'RPH Jatim', ENT_QUOTES, 'UTF-8'); ?>
+                          <span class="badge badge-light border ml-1 font-weight-normal"><?php echo htmlspecialchars($pk->animal_type ?? 'Sapi', ENT_QUOTES, 'UTF-8'); ?></span>
+                        </h6>
+                        <?php if (!$is_inst && (!empty($pk->instructor_firstname) || !empty($pk->instructor_nickname))): ?>
+                          <small class="text-muted d-block mt-1">
+                            Instruktur: <strong><?php echo htmlspecialchars(trim(($pk->instructor_firstname ?? '') . ' ' . ($pk->instructor_lastname ?? '')) ?: $pk->instructor_nickname); ?></strong>
+                          </small>
+                        <?php endif; ?>
+                        <?php if (!empty($pk->description)): ?>
+                          <p class="small text-muted mb-0 mt-1"><?php echo htmlspecialchars($pk->description, ENT_QUOTES, 'UTF-8'); ?></p>
+                        <?php endif; ?>
+                      </div>
+                    <?php endforeach; ?>
+                  <?php else: ?>
+                    <div class="empty-state">
+                      <i class="fas fa-cut"></i>
+                      <h5>Belum Ada Riwayat Praktik Sembelih</h5>
+                      <p>Catatan keikutsertaan praktik penyembelihan anggota belum ditambahkan.</p>
+                      <a href="<?php echo base_url('prakteks/scan/' . rawurlencode($juleha_id)); ?>" class="btn btn-outline-success btn-sm mt-3 font-weight-bold">
+                        <i class="fas fa-qrcode mr-1"></i> Mulai Presensi Praktik
+                      </a>
+                    </div>
+                  <?php endif; ?>
+                </div>
+
                 <!-- 4. OFFICIAL KTA CARD PREVIEW TAB (REPLACES OBSOLETE TEMPLATE) -->
                 <div class="tab-pane fade" id="kta" role="tabpanel">
                   <div class="kta-preview-container">
@@ -667,6 +748,47 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
   </footer>
 
 </div><!-- ./wrapper -->
+
+  <!-- Modal Info APK & Web Scanner -->
+  <div class="modal fade" id="modalApkInfo" tabindex="-1" role="dialog" aria-labelledby="modalApkInfoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+        <div class="modal-header text-white" style="background: linear-gradient(135deg, #064e3b 0%, #059669 100%);">
+          <h5 class="modal-title font-weight-bold" id="modalApkInfoLabel">
+            <i class="fab fa-android mr-2"></i> Aplikasi Juleha & Scanner KTA
+          </h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body p-4 text-center">
+          <div class="mb-3 text-success">
+            <i class="fas fa-qrcode fa-3x"></i>
+          </div>
+          <h5 class="font-weight-bold text-dark mb-2">Scanner Web Terpadu Telah Aktif!</h5>
+          <p class="text-muted small text-left mb-3">
+            Kini Anda <strong>tidak perlu lagi mengunduh atau menginstal file APK</strong> di HP Android Anda. Fitur scan QR Code KTA dan presensi praktik penyembelihan sudah terintegrasi langsung di website <strong>members.julehajatim.com</strong>, dapat langsung dibuka lewat browser Chrome/Safari di HP Android maupun iPhone.
+          </p>
+          <div class="alert alert-light border text-left p-3 mb-3">
+            <div class="small font-weight-bold text-success mb-1"><i class="fas fa-check-circle mr-1"></i> Keunggulan Scanner Web:</div>
+            <ul class="small text-muted pl-3 mb-0" style="line-height: 1.6;">
+              <li>Langsung buka kamera scanner tanpa instal aplikasi</li>
+              <li>Bisa dipakai di Android, iPhone/iOS, Tablet, maupun Laptop</li>
+              <li>Data presensi langsung tersimpan ke server database realtime</li>
+            </ul>
+          </div>
+          <div class="d-flex flex-column" style="gap: 8px;">
+            <a href="<?php echo base_url('prakteks/scan/' . rawurlencode($juleha_id)); ?>" class="btn btn-success font-weight-bold py-2" style="background: #059669; border-color: #059669; border-radius: 10px;">
+              <i class="fas fa-camera mr-1"></i> Buka Scanner Kamera Sekarang
+            </a>
+            <a href="/apps/JulehaJawaTimur-v1.2.apk" class="btn btn-outline-secondary btn-sm py-2" style="border-radius: 10px;">
+              <i class="fab fa-android mr-1"></i> Tetap Download File APK Lama (v1.2)
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <!-- Hidden Container for QRCode generation -->
 <div id="mybarcode"></div>

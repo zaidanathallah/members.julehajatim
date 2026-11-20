@@ -9,56 +9,89 @@
           <img src="/images/logo.jpg" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="#" class="d-block"><?php echo ($_SESSION['memberlevel']==='2')?'Member':'Admin';?></a>
+          <a href="#" class="d-block"><?php echo (isset($_SESSION['memberlevel']) && $_SESSION['memberlevel']==='2')?'Member':'Admin';?></a>
         </div>
       </div>
-
 
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <!-- Add icons to the links using the .nav-icon class
-               with font-awesome or any other icon font library -->
-            <?php if($_SESSION['memberlevel']<2){?>
-            <li class="nav-item menu-open">
+          
+          <?php if(isset($_SESSION['memberlevel']) && (int)$_SESSION['memberlevel'] < 2){ ?>
+          <!-- ADMIN MENUS -->
+          <li class="nav-item">
             <a href="/members/index" class="nav-link <?php echo ($active['list'] ?? '');?>">
               <i class="nav-icon fas fa-table"></i>
-              <p>
-                Daftar Anggota
-              </p>
+              <p>Daftar Anggota</p>
             </a>
           </li>
-          <li class="nav-item menu-open">
+          <li class="nav-item">
             <a href="/members/analisis" class="nav-link <?php echo ($active['analisis'] ?? '');?>">
               <i class="nav-icon fas fa-chart-pie"></i>
-              <p>
-                Analisis Keanggotaan
-              </p>
+              <p>Analisis Keanggotaan</p>
             </a>
           </li>
-          <?php }?>
-          <li class="nav-item menu-open">
-            <a href="/members/profile" class="nav-link <?php echo $active['profile'];?>">
-            <i class="nav-icon fas fa-id-card"></i> 
+          <li class="nav-item <?php echo !empty($active['praktek']) ? 'menu-open' : ''; ?>">
+            <a href="#" class="nav-link <?php echo ($active['praktek'] ?? ''); ?>">
+              <i class="nav-icon fas fa-clipboard-check"></i>
               <p>
-                Profil Anggota
+                Presensi & Praktik
+                <i class="right fas fa-angle-left"></i>
               </p>
             </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="/prakteks/scan" class="nav-link <?php echo ($active['praktek_scan'] ?? ''); ?>">
+                  <i class="fas fa-qrcode nav-icon"></i>
+                  <p>Scan Presensi KTA</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/prakteks/index" class="nav-link <?php echo ($active['praktek_index'] ?? ''); ?>">
+                  <i class="fas fa-list nav-icon"></i>
+                  <p>Riwayat & Data Praktik</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/prakteks/rekap_anggota" class="nav-link <?php echo ($active['praktek_rekap'] ?? ''); ?>">
+                  <i class="fas fa-users-cog nav-icon"></i>
+                  <p>Rekap per Anggota</p>
+                </a>
+              </li>
+            </ul>
           </li>
-          <li class="nav-item menu-open">
-            <a href="/members/showqr/<?php echo $_SESSION['juleha_id']?>" class="nav-link ">
-            <i class="nav-icon fas fa-id-card"></i> 
-              <p>
-                QRCode keanggotaan saya
-              </p>
+          <?php } else { ?>
+          <!-- MEMBER MENUS -->
+          <li class="nav-item">
+            <a href="/prakteks/my_history" class="nav-link <?php echo ($active['praktek_my'] ?? ''); ?>">
+              <i class="nav-icon fas fa-clipboard-check"></i>
+              <p>Riwayat Praktik Saya</p>
             </a>
           </li>
-          <li class="nav-item menu-open">
+          <li class="nav-item">
+            <a href="/prakteks/scan" class="nav-link <?php echo ($active['praktek_scan'] ?? ''); ?>">
+              <i class="nav-icon fas fa-qrcode"></i>
+              <p>Scan Presensi Praktik</p>
+            </a>
+          </li>
+          <?php } ?>
+
+          <li class="nav-item">
+            <a href="/members/profile" class="nav-link <?php echo ($active['profile'] ?? '');?>">
+              <i class="nav-icon fas fa-id-card"></i> 
+              <p>Profil Anggota</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/members/showqr/<?php echo $_SESSION['juleha_id'] ?? ''; ?>" class="nav-link">
+              <i class="nav-icon fas fa-qrcode"></i> 
+              <p>QRCode keanggotaan saya</p>
+            </a>
+          </li>
+          <li class="nav-item">
             <a href="/members/logout" class="nav-link">
               <i class="nav-icon fas fa-sign-out-alt"></i> 
-              <p>
-                Keluar
-              </p>
+              <p>Keluar</p>
             </a>
           </li>
         </ul>
