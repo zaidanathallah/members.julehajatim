@@ -58,6 +58,48 @@
       object-fit: cover;
       border: 2px solid #10b981;
     }
+    .dropdown-search-box {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 1060;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      max-height: 290px;
+      overflow-y: auto;
+      margin-top: 4px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+    .search-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.15s ease;
+      display: flex;
+      align-items: center;
+    }
+    .search-item:last-child {
+      border-bottom: none;
+    }
+    .search-item:hover, .search-item.active {
+      background-color: #ecfdf5;
+    }
+    .search-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #10b981;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .selected-member-card {
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 12px;
+    }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -224,26 +266,77 @@
         </div>
         <form id="formAddInstructor">
           <div class="modal-body p-4">
+
+            <!-- 1. Pencarian Live Nama / ID Anggota -->
             <div class="form-group mb-3">
-              <label class="font-weight-bold small text-uppercase text-dark">ID Juleha Anggota <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <input type="text" class="form-control font-weight-bold" id="new_juleha_id" name="juleha_id" placeholder="Misal: SBY220006" required>
-                <div class="input-group-append">
-                  <button type="button" class="btn btn-outline-success font-weight-bold" id="btnCheckMember">
-                    <i class="fas fa-search mr-1"></i> Cek
-                  </button>
+              <label class="font-weight-bold small text-uppercase text-dark d-flex align-items-center justify-content-between">
+                <span><i class="fas fa-search text-success mr-1"></i> Cari Nama Anggota / ID <span class="text-danger">*</span></span>
+                <span class="badge badge-light border text-muted font-weight-normal">Nama Panggilan / Depan / Belakang / ID</span>
+              </label>
+
+              <div class="position-relative">
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text bg-white border-right-0" id="searchIconSpan">
+                      <i class="fas fa-search text-muted" id="searchIcon"></i>
+                    </span>
+                  </div>
+                  <input type="text" class="form-control border-left-0 font-weight-500" id="inputSearchMember" 
+                         placeholder="Ketik nama anggota (misal: Maftuchin, Zaidan, Ahmad)..." autocomplete="off">
+                  <div class="input-group-append" id="btnGroupClearSearch" style="display: none;">
+                    <button class="btn btn-outline-secondary" type="button" id="btnClearSearch" title="Hapus pencarian">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Live Search Results Dropdown -->
+                <div id="dropdownSearchResults" class="dropdown-search-box" style="display: none;">
+                  <div id="searchResultsList"></div>
                 </div>
               </div>
-              <small class="text-muted" id="memberCheckResult">Ketik ID dan klik Cek untuk memastikan nama anggota.</small>
+              <small class="text-muted d-block mt-1">
+                Ketik nama (huruf besar/kecil otomatis terdeteksi) untuk memilih anggota yang akan dijadikan instruktur resmi.
+              </small>
             </div>
-            <div class="form-group mb-3">
-              <label class="font-weight-bold small text-uppercase text-dark">Catatan / Bidang Pengujian</label>
+
+            <!-- 2. Kartu Anggota Terpilih -->
+            <div id="cardSelectedMember" class="selected-member-card p-3 mb-3 shadow-sm" style="display: none;">
+              <div class="d-flex align-items-center">
+                <img src="/assets/adminlte/dist/img/avatar5.png" id="selectedMemberPhoto" class="rounded-circle mr-3 border" 
+                     style="width: 56px; height: 56px; object-fit: cover; border-width: 2px !important; border-color: #10b981 !important;"
+                     onerror="this.onerror=null;this.src='/assets/adminlte/dist/img/avatar5.png';">
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <h6 class="font-weight-bold mb-0 text-success" id="selectedMemberName">-</h6>
+                    <span class="badge badge-success px-2 py-1 font-weight-bold" id="selectedMemberBadgeId">-</span>
+                  </div>
+                  <div class="small text-muted mt-1">
+                    <span class="mr-2"><i class="fas fa-map-marker-alt text-danger mr-1"></i> <span id="selectedMemberRegion">-</span></span>
+                    <span><i class="fas fa-user-tag text-info mr-1"></i> <span id="selectedMemberPosition">Anggota</span></span>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger ml-2 font-weight-bold" id="btnCancelSelectedMember" title="Ganti Anggota">
+                  <i class="fas fa-times mr-1"></i> Ganti
+                </button>
+              </div>
+            </div>
+
+            <!-- Hidden input for selected Juleha ID -->
+            <input type="hidden" id="new_juleha_id" name="juleha_id" value="" required>
+
+            <!-- 3. Catatan / Bidang Pengujian -->
+            <div class="form-group mb-2">
+              <label class="font-weight-bold small text-uppercase text-dark">
+                <i class="fas fa-pen-nib text-success mr-1"></i> Catatan / Bidang Pengujian
+              </label>
               <input type="text" class="form-control" name="notes" placeholder="Misal: Instruktur Praktik Sembelih RPH TOW & Kedurus" value="Instruktur Resmi Juleha Jatim">
             </div>
+
           </div>
           <div class="modal-footer bg-light p-3">
             <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
-            <button type="submit" class="btn btn-success font-weight-bold px-4" id="btnSubmitAdd">
+            <button type="submit" class="btn btn-success font-weight-bold px-4 shadow-sm" id="btnSubmitAdd" disabled>
               <i class="fas fa-save mr-1"></i> Simpan Instruktur
             </button>
           </div>
@@ -266,54 +359,154 @@
 <script src="/assets/adminlte/dist/js/adminlte.min.js"></script>
 
 <script>
-$('#btnCheckMember').on('click', function() {
-  const id = $('#new_juleha_id').val().trim();
-  if (!id) {
-    alert('Masukkan ID Juleha terlebih dahulu.');
+let searchTimeout = null;
+
+// Live Search Anggota by Name or ID with Debounce
+$('#inputSearchMember').on('input', function() {
+  const query = $(this).val().trim();
+  clearTimeout(searchTimeout);
+
+  if (query.length === 0) {
+    $('#dropdownSearchResults').hide();
+    $('#searchResultsList').empty();
+    $('#btnGroupClearSearch').hide();
     return;
   }
-  $('#btnCheckMember').html('<i class="fas fa-spinner fa-spin mr-1"></i> ...').prop('disabled', true);
-  $.ajax({
-    url: '/prakteks/get_member_ajax',
-    type: 'GET',
-    data: { juleha_id: id },
-    dataType: 'json',
-    success: function(resp) {
-      $('#btnCheckMember').html('<i class="fas fa-search mr-1"></i> Cek').prop('disabled', false);
-      if (resp.status) {
-        $('#memberCheckResult').html(`
-          <div class="alert alert-success py-1 px-2 mt-1 mb-0 small">
-            <i class="fas fa-check-circle mr-1"></i> Ditemukan: <strong>${resp.name}</strong> (${resp.region || 'Jatim'})
+
+  $('#btnGroupClearSearch').show();
+  $('#searchIcon').removeClass('fa-search').addClass('fa-spinner fa-spin text-success');
+
+  searchTimeout = setTimeout(function() {
+    $.ajax({
+      url: '<?php echo base_url("prakteks/search_members_ajax"); ?>',
+      type: 'GET',
+      data: { q: query },
+      dataType: 'json',
+      success: function(members) {
+        $('#searchIcon').removeClass('fa-spinner fa-spin text-success').addClass('fa-search');
+        renderSearchResults(members);
+      },
+      error: function() {
+        $('#searchIcon').removeClass('fa-spinner fa-spin text-success').addClass('fa-search');
+        $('#searchResultsList').html(`
+          <div class="p-3 text-center text-muted small">
+            Gagal mengambil data pencarian.
           </div>
         `);
-      } else {
-        $('#memberCheckResult').html(`
-          <div class="alert alert-danger py-1 px-2 mt-1 mb-0 small">
-            <i class="fas fa-times-circle mr-1"></i> ${resp.message}
-          </div>
-        `);
+        $('#dropdownSearchResults').show();
       }
-    },
-    error: function() {
-      $('#btnCheckMember').html('<i class="fas fa-search mr-1"></i> Cek').prop('disabled', false);
-      alert('Gagal menghubungi server.');
-    }
+    });
+  }, 220);
+});
+
+function renderSearchResults(members) {
+  const $list = $('#searchResultsList');
+  $list.empty();
+
+  if (!members || members.length === 0) {
+    $list.html(`
+      <div class="p-3 text-center text-muted small">
+        <i class="fas fa-user-slash text-secondary fa-2x mb-2 d-block"></i>
+        Tidak ditemukan anggota dengan nama/ID tersebut.
+      </div>
+    `);
+    $('#dropdownSearchResults').show();
+    return;
+  }
+
+  members.forEach(function(m) {
+    const itemHtml = $(`
+      <div class="search-item">
+        <img src="${m.photo_url}" class="search-avatar" onerror="this.onerror=null;this.src='/assets/adminlte/dist/img/avatar5.png';">
+        <div class="flex-grow-1 pr-2">
+          <div class="d-flex align-items-center justify-content-between">
+            <strong class="text-dark" style="font-size: 0.95rem;">${m.fullname}</strong>
+            <span class="badge badge-success px-2 py-1">${m.id}</span>
+          </div>
+          <div class="small text-muted mt-1">
+            <span class="mr-2"><i class="fas fa-tag mr-1 text-success"></i>Panggilan: <strong>${m.nickname || '-'}</strong></span>
+            <span><i class="fas fa-map-marker-alt mr-1 text-danger"></i>${m.region || 'Jatim'}</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="btn btn-sm btn-outline-success font-weight-bold py-1 px-2">
+            <i class="fas fa-check mr-1"></i> Pilih
+          </span>
+        </div>
+      </div>
+    `);
+
+    itemHtml.on('click', function() {
+      selectMember(m);
+    });
+
+    $list.append(itemHtml);
   });
+
+  $('#dropdownSearchResults').show();
+}
+
+function selectMember(m) {
+  $('#new_juleha_id').val(m.id);
+  $('#selectedMemberName').text(m.fullname + (m.nickname ? ' (' + m.nickname + ')' : ''));
+  $('#selectedMemberBadgeId').text(m.id);
+  $('#selectedMemberRegion').text(m.region || 'Jatim');
+  $('#selectedMemberPosition').text(m.position || 'Anggota');
+  $('#selectedMemberPhoto').attr('src', m.photo_url + '?t=' + new Date().getTime());
+
+  $('#cardSelectedMember').slideDown(200);
+  $('#btnSubmitAdd').prop('disabled', false);
+
+  // Sembunyikan dropdown & kosongkan search box
+  $('#dropdownSearchResults').hide();
+  $('#inputSearchMember').val(m.fullname + ' (' + m.id + ')');
+  $('#btnGroupClearSearch').show();
+}
+
+function resetMemberSelection() {
+  $('#new_juleha_id').val('');
+  $('#cardSelectedMember').slideUp(150);
+  $('#btnSubmitAdd').prop('disabled', true);
+  $('#inputSearchMember').val('').focus();
+  $('#dropdownSearchResults').hide();
+  $('#searchResultsList').empty();
+  $('#btnGroupClearSearch').hide();
+}
+
+$('#btnClearSearch, #btnCancelSelectedMember').on('click', function() {
+  resetMemberSelection();
+});
+
+// Tutup dropdown jika klik di luar
+$(document).on('click', function(e) {
+  if (!$(e.target).closest('#modalAddInstructor .position-relative').length) {
+    $('#dropdownSearchResults').hide();
+  }
+});
+
+$('#modalAddInstructor').on('hidden.bs.modal', function() {
+  resetMemberSelection();
 });
 
 $('#formAddInstructor').on('submit', function(e) {
   e.preventDefault();
+  const julehaId = $('#new_juleha_id').val().trim();
+  if (!julehaId) {
+    alert('Silakan cari dan pilih anggota terlebih dahulu.');
+    return;
+  }
+
   const $btn = $('#btnSubmitAdd');
   $btn.html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...').prop('disabled', true);
 
   $.ajax({
-    url: '/prakteks/add_instructor_ajax',
+    url: '<?php echo base_url("prakteks/add_instructor_ajax"); ?>',
     type: 'POST',
     data: $(this).serialize(),
     dataType: 'json',
     success: function(resp) {
       $btn.html('<i class="fas fa-save mr-1"></i> Simpan Instruktur').prop('disabled', false);
-      if (resp.status) {
+      if (resp && resp.status) {
         alert(resp.message);
         location.reload();
       } else {
@@ -333,12 +526,12 @@ function deleteInstructor(julehaId, name) {
   }
 
   $.ajax({
-    url: '/prakteks/delete_instructor_ajax',
+    url: '<?php echo base_url("prakteks/delete_instructor_ajax"); ?>',
     type: 'POST',
     data: { juleha_id: julehaId },
     dataType: 'json',
     success: function(resp) {
-      if (resp.status) {
+      if (resp && resp.status) {
         alert(resp.message);
         location.reload();
       } else {

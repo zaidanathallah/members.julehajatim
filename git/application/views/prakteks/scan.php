@@ -186,18 +186,26 @@
     </ul>
 
     <ul class="navbar-nav ml-auto">
-      <?php if ($is_admin): ?>
+      <?php if (!empty($is_logged_in)): ?>
+        <?php if (!empty($is_admin)): ?>
+          <li class="nav-item">
+            <a href="<?php echo base_url('prakteks/index'); ?>" class="btn btn-outline-secondary btn-sm rounded shadow-sm font-weight-bold px-3 mr-2">
+              <i class="fas fa-list mr-1"></i> Data Praktik
+            </a>
+          </li>
+        <?php endif; ?>
         <li class="nav-item">
-          <a href="<?php echo base_url('prakteks/index'); ?>" class="btn btn-outline-secondary btn-sm rounded shadow-sm font-weight-bold px-3 mr-2">
-            <i class="fas fa-list mr-1"></i> Data Praktik
+          <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-3">
+            <i class="fas fa-sign-out-alt mr-1"></i> Keluar
+          </a>
+        </li>
+      <?php else: ?>
+        <li class="nav-item">
+          <a href="<?php echo base_url('members/login'); ?>" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-3">
+            <i class="fas fa-sign-in-alt mr-1"></i> Login Instruktur
           </a>
         </li>
       <?php endif; ?>
-      <li class="nav-item">
-        <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-3">
-          <i class="fas fa-sign-out-alt mr-1"></i> Keluar
-        </a>
-      </li>
     </ul>
   </nav>
 
@@ -348,6 +356,18 @@
                 <?php endif; ?>
               </div>
               <div class="card-body p-4">
+
+                <?php if (empty($is_logged_in)): ?>
+                  <div class="alert alert-info border-0 shadow-sm py-2 px-3 mb-3 d-flex flex-wrap align-items-center justify-content-between" style="border-radius: 12px; background: #e0f2fe; color: #0369a1;">
+                    <div class="d-flex align-items-center mb-1 mb-md-0">
+                      <i class="fas fa-id-card fa-lg text-info mr-2"></i>
+                      <span class="small font-weight-500">Mode Presensi Peserta Aktif. Anda dapat langsung menyimpan presensi praktik di RPH tanpa harus login.</span>
+                    </div>
+                    <a href="<?php echo base_url('members/login'); ?>" class="btn btn-sm btn-info font-weight-bold text-white shadow-sm" style="border-radius: 8px;">
+                      <i class="fas fa-sign-in-alt mr-1"></i> Login Instruktur
+                    </a>
+                  </div>
+                <?php endif; ?>
 
                 <!-- Member Preview Card (Shows upon QR Detection / ID Input) -->
                 <div class="member-preview-card mb-4" id="memberPreviewCard">
@@ -808,13 +828,13 @@ function fetchMemberInfo(julehaId) {
   $('#btnCekAnggota').html('<i class="fas fa-spinner fa-spin mr-1"></i> Memuat...').prop('disabled', true);
 
   $.ajax({
-    url: '/prakteks/get_member_ajax',
+    url: '<?php echo base_url("prakteks/get_member_ajax"); ?>',
     type: 'GET',
     data: { juleha_id: julehaId },
     dataType: 'json',
     success: function(resp) {
       $('#btnCekAnggota').html('<i class="fas fa-search mr-1"></i> Cek Anggota').prop('disabled', false);
-      if (resp.status) {
+      if (resp && resp.status) {
         $('#previewJulehaId').text('ID: ' + resp.juleha_id);
         $('#previewRegion').text(resp.region ? ('Wilayah: ' + resp.region) : 'Jawa Timur');
         $('#previewName').text(resp.name);
@@ -841,12 +861,19 @@ function fetchMemberInfo(julehaId) {
         $('#memberPreviewCard').slideDown(250);
       } else {
         $('#memberPreviewCard').slideUp(200);
-        alert(resp.message || 'Anggota tidak ditemukan.');
+        if (resp && resp.message) {
+          $('#scanFeedback').html(`
+            <div class="alert alert-danger py-2 px-3 small font-weight-bold mb-0">
+              <i class="fas fa-exclamation-circle mr-1"></i> ${resp.message}
+            </div>
+          `).show();
+        }
       }
     },
-    error: function() {
+    error: function(xhr, status, error) {
       $('#btnCekAnggota').html('<i class="fas fa-search mr-1"></i> Cek Anggota').prop('disabled', false);
-      alert('Gagal menghubungi server.');
+      console.warn("get_member_ajax error:", status, error);
+      // Hindari alert pop up yang mengganggu saat auto prefill di background
     }
   });
 }
@@ -895,7 +922,7 @@ $('#formPresensi').on('submit', function(e) {
   $btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...').prop('disabled', true);
 
   $.ajax({
-    url: '/prakteks/save_attendance_ajax',
+    url: '<?php echo base_url("prakteks/save_attendance_ajax"); ?>',
     type: 'POST',
     data: $(this).serialize(),
     dataType: 'json',

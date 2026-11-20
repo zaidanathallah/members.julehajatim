@@ -9,7 +9,11 @@
           <img src="/images/logo.jpg" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="#" class="d-block"><?php echo (isset($_SESSION['memberlevel']) && $_SESSION['memberlevel']==='2')?'Member':'Admin';?></a>
+          <?php if (isset($_SESSION['juleha_id'])): ?>
+            <a href="#" class="d-block"><?php echo (isset($_SESSION['memberlevel']) && $_SESSION['memberlevel']==='2')?'Member':'Admin';?></a>
+          <?php else: ?>
+            <a href="/members/login" class="d-block text-white font-weight-bold">Tamu / Belum Login</a>
+          <?php endif; ?>
         </div>
       </div>
 
@@ -82,6 +86,7 @@
           </li>
           <?php } ?>
 
+          <?php if (isset($_SESSION['juleha_id'])): ?>
           <li class="nav-item">
             <a href="/members/profile" class="nav-link <?php echo ($active['profile'] ?? '');?>">
               <i class="nav-icon fas fa-id-card"></i> 
@@ -100,6 +105,20 @@
               <p>Keluar</p>
             </a>
           </li>
+          <?php else: ?>
+          <li class="nav-item">
+            <a href="/prakteks/scan" class="nav-link <?php echo ($active['praktek_scan'] ?? ''); ?>">
+              <i class="nav-icon fas fa-qrcode"></i> 
+              <p>Scan Presensi Praktik</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/members/login" class="nav-link text-success">
+              <i class="nav-icon fas fa-sign-in-alt"></i> 
+              <p>Login Sistem</p>
+            </a>
+          </li>
+          <?php endif; ?>
         </ul>
       </nav>
       <!-- /.sidebar-menu -->
