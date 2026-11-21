@@ -282,7 +282,7 @@
                       <div class="col-md-4 mb-2 mb-md-0">
                         <div class="text-muted small text-uppercase font-weight-500 mb-1">Lokasi RPH</div>
                         <h6 class="font-weight-bold text-dark mb-0">
-                          <i class="fas fa-map-marker-alt text-danger mr-1"></i> <?php echo ((int)$s->rph_id === 2) ? 'RPH Kedurus' : 'RPH TOW (Tambak Osowilangun)'; ?>
+                          <i class="fas fa-map-marker-alt text-danger mr-1"></i> <?php echo ((int)($s->rph_id ?? 1) === 2) ? 'RPH Kedurus' : 'RPH TOW (Tambak Osowilangun)'; ?>
                         </h6>
                       </div>
                       <div class="col-md-3 col-6 mb-2 mb-md-0">
@@ -298,7 +298,8 @@
                         <span class="font-weight-600 text-dark">
                           <?php 
                             if ($is_inst) {
-                              echo htmlspecialchars($s->member_firstname ?? $s->member_nickname ?? $s->juleha_id ?? 'Anggota Juleha');
+                              $member_full = trim(($s->member_firstname ?? '') . ' ' . ($s->member_lastname ?? ''));
+                              echo htmlspecialchars(!empty($member_full) ? $member_full : ($s->member_nickname ?? $s->juleha_id ?? 'Anggota Juleha'));
                             } else {
                               $inst_full = trim(($s->instructor_firstname ?? '') . ' ' . ($s->instructor_lastname ?? ''));
                               echo htmlspecialchars(!empty($inst_full) ? $inst_full : ($s->instructor_nickname ?? $s->instructor_id ?? '-'));
@@ -328,9 +329,15 @@
                       <div class="small text-dark mt-1 font-weight-500 p-2 bg-light rounded border">
                         <?php echo htmlspecialchars($s->description ?: 'Belum ada catatan evaluasi tertulis dari Instruktur.'); ?>
                       </div>
-                      <?php if (!empty($s->evaluator_nickname) || !empty($s->evaluated_by)): ?>
+                      <?php 
+                        $eval_by_name = trim(($s->evaluator_firstname ?? '') . ' ' . ($s->evaluator_lastname ?? ''));
+                        if (empty($eval_by_name)) {
+                          $eval_by_name = $s->evaluator_nickname ?? $s->evaluated_by ?? '';
+                        }
+                      ?>
+                      <?php if (!empty($eval_by_name)): ?>
                         <small class="text-muted d-block mt-1">
-                          <i class="fas fa-user-check text-success mr-1"></i> Dinilai oleh Instruktur: <strong><?php echo htmlspecialchars(trim(($s->evaluator_firstname ?? '') . ' ' . ($s->evaluator_lastname ?? '')) ?: $s->evaluator_nickname ?: $s->evaluated_by); ?></strong>
+                          <i class="fas fa-user-check text-success mr-1"></i> Dinilai oleh Instruktur: <strong><?php echo htmlspecialchars($eval_by_name); ?></strong>
                         </small>
                       <?php endif; ?>
                     </div>

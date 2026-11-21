@@ -311,11 +311,15 @@ class Praktek extends CI_Model {
             m.nickname as member_nickname,
             m.firstname as member_firstname,
             m.lastname as member_lastname,
+            eval.nickname as evaluator_nickname,
+            eval.firstname as evaluator_firstname,
+            eval.lastname as evaluator_lastname,
             r.name as rph_name,
             COALESCE(NULLIF(p.location_name, ''), r.name, 'RPH TOW (Tambak Osowilangun)') as effective_location
         ");
         $this->db->from('prakteks p');
         $this->db->join('members m', 'm.juleha_id = p.juleha_id', 'left');
+        $this->db->join('members eval', 'eval.juleha_id = p.evaluated_by', 'left');
         $this->db->join('rphs r', 'r.id = p.rph_id', 'left');
         $this->db->group_start();
         $this->db->where('p.instructor_id', $clean_id);
