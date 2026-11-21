@@ -24,6 +24,19 @@
     .grow {
       flex-grow: 1 !important;
     }
+    @keyframes scanSuccessPulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.9); }
+      50% { box-shadow: 0 0 25px 8px rgba(16, 185, 129, 0.9); border-color: #10b981; }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .scanner-success-flash {
+      animation: scanSuccessPulse 0.6s ease-out;
+      border: 3px solid #10b981 !important;
+    }
+    .mode-tab-btn {
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
     .card-modern {
       background: #ffffff;
       border-radius: 16px;
@@ -438,16 +451,15 @@
           <!-- RIGHT COLUMN: Attendance Form, Instructor Queue & Member Preview -->
           <div class="col-lg-7 col-md-6">
 
-            <!-- SECTION ANTREAN EVALUASI KHUSUS INSTRUKTUR (Muncul jika yang mengakses adalah Instruktur / Admin) -->
-            <?php if ($can_evaluate): ?>
-            <div class="card-modern mb-4" id="sectionQueueEvaluations" style="border: 2px solid #10b981;">
+            <!-- SECTION ANTREAN EVALUASI KHUSUS INSTRUKTUR (Tampil saat Mode Instruktur) -->
+            <div class="card-modern mb-4" id="sectionQueueEvaluations" style="border: 2px solid #10b981; display: <?php echo $can_evaluate ? 'block' : 'none'; ?>;">
               <div class="card-header-juleha d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #064e3b 0%, #047857 100%);">
                 <div>
                   <h6 class="font-weight-bold m-0 text-white">
                     <i class="fas fa-clipboard-list mr-2 text-warning"></i> Antrean Peserta Menunggu Evaluasi Anda
                   </h6>
                   <small class="text-white-50">
-                    Instruktur: <strong><?php echo htmlspecialchars($active_instructor_name ?: ($logged_name ?: $active_instructor_id)); ?></strong> (<?php echo htmlspecialchars($active_instructor_id); ?>)
+                    Instruktur: <strong id="queueInstructorName"><?php echo htmlspecialchars($active_instructor_name ?: ($logged_name ?: $active_instructor_id)); ?></strong> (<span id="queueInstructorId"><?php echo htmlspecialchars($active_instructor_id); ?></span>)
                   </small>
                 </div>
                 <div>
@@ -470,32 +482,42 @@
                 <div id="queueList" class="d-flex flex-column" style="gap: 10px;"></div>
               </div>
             </div>
-            <?php endif; ?>
 
             <div class="card-modern">
               <div class="card-header-juleha d-flex align-items-center justify-content-between">
                 <span class="font-weight-bold" id="formHeaderTitle">
-                  <i class="fas fa-edit mr-2"></i> Form Presensi & Evaluasi Praktik
+                  <i class="fas <?php echo $can_evaluate ? 'fa-clipboard-check' : 'fa-edit'; ?> mr-2"></i> <?php echo $can_evaluate ? 'Form Evaluasi Peserta Praktik' : 'Form Presensi Peserta Praktik'; ?>
                 </span>
-                <?php if ($can_evaluate): ?>
-                  <span class="badge badge-light px-2 py-1 font-weight-bold text-success"><i class="fas fa-user-shield mr-1"></i> Mode Instruktur</span>
-                <?php else: ?>
-                  <span class="badge badge-warning px-2 py-1 font-weight-bold text-dark"><i class="fas fa-user mr-1"></i> Mode Peserta</span>
-                <?php endif; ?>
+                <span class="badge <?php echo $can_evaluate ? 'badge-success text-white' : 'badge-warning text-dark'; ?> px-2 py-1 font-weight-bold" id="formModeBadge">
+                  <i class="fas <?php echo $can_evaluate ? 'fa-user-shield' : 'fa-user'; ?> mr-1"></i> <span id="formModeBadgeText"><?php echo $can_evaluate ? 'Mode Instruktur' : 'Mode Peserta'; ?></span>
+                </span>
               </div>
               <div class="card-body p-4">
 
-                <?php if (empty($is_logged_in) && !$can_evaluate): ?>
-                  <div class="alert alert-info border-0 shadow-sm py-2 px-3 mb-3 d-flex flex-wrap align-items-center justify-content-between" style="border-radius: 12px; background: #e0f2fe; color: #0369a1;">
-                    <div class="d-flex align-items-center mb-1 mb-md-0">
-                      <i class="fas fa-id-card fa-lg text-info mr-2"></i>
-                      <span class="small font-weight-500">Mode Peserta Aktif. Silakan pilih Instruktur Pembimbing Anda di bawah ini lalu klik Kirim Presensi.</span>
-                    </div>
-                    <a href="<?php echo base_url('members/login'); ?>" class="btn btn-sm btn-info font-weight-bold text-white shadow-sm" style="border-radius: 8px;">
-                      <i class="fas fa-sign-in-alt mr-1"></i> Login Instruktur
-                    </a>
+                <!-- Mode Switcher Tabs (2 Pilihan Mode: Peserta Praktik vs Instruktur Resmi) -->
+                <div class="mb-3 p-1 bg-light rounded-pill border d-flex">
+                  <button type="button" class="btn btn-sm rounded-pill font-weight-bold flex-fill mode-tab-btn <?php echo !$can_evaluate ? 'btn-success text-white shadow-sm' : 'btn-light text-muted'; ?>" id="btnTabPeserta">
+                    <i class="fas fa-user mr-1"></i> Mode Peserta Praktik
+                  </button>
+                  <button type="button" class="btn btn-sm rounded-pill font-weight-bold flex-fill mode-tab-btn <?php echo $can_evaluate ? 'btn-success text-white shadow-sm' : 'btn-light text-muted'; ?>" id="btnTabInstruktur">
+                    <i class="fas fa-user-shield mr-1"></i> Mode Instruktur Resmi
+                  </button>
+                </div>
+
+                <!-- Alert Banner Status Mode -->
+                <div class="alert border-0 shadow-sm py-2 px-3 mb-3 d-flex flex-wrap align-items-center justify-content-between" id="modeAlertBanner" style="border-radius: 12px; <?php echo $can_evaluate ? 'background: #ecfdf5; color: #065f46;' : 'background: #e0f2fe; color: #0369a1;'; ?>">
+                  <div class="d-flex align-items-center mb-1 mb-md-0">
+                    <i class="fas <?php echo $can_evaluate ? 'fa-user-shield text-success' : 'fa-id-card text-info'; ?> fa-lg mr-2" id="modeAlertIcon"></i>
+                    <span class="small font-weight-500" id="modeAlertText">
+                      <?php echo $can_evaluate ? 'Mode Instruktur Aktif. Pilih peserta dari antrean di atas atau scan KTA fisik peserta untuk mengisi evaluasi.' : 'Mode Peserta Aktif. Silakan pilih Instruktur Pembimbing Anda di bawah ini lalu klik Kirim Presensi.'; ?>
+                    </span>
                   </div>
-                <?php endif; ?>
+                  <?php if (empty($is_logged_in)): ?>
+                    <a href="<?php echo base_url('members/login'); ?>" class="btn btn-sm btn-info font-weight-bold text-white shadow-sm" style="border-radius: 8px;">
+                      <i class="fas fa-sign-in-alt mr-1"></i> Login Akun
+                    </a>
+                  <?php endif; ?>
+                </div>
 
                 <!-- Member Preview Card (Shows upon QR Detection / ID Input) -->
                 <div class="member-preview-card mb-4" id="memberPreviewCard">
@@ -576,8 +598,13 @@
                     </small>
                   </div>
 
-                  <!-- 3. Instruktur Pembimbing (Pencarian Nama & Tombol Cepat) -->
-                  <div class="form-group mb-3" id="groupInstructor">
+                  <!-- Info Instruktur Penguji Aktif (Khusus Mode Instruktur) -->
+                  <div id="infoInstructorActive" class="alert alert-success py-2 px-3 mb-3 small font-weight-bold shadow-sm" style="display: <?php echo $can_evaluate ? 'block' : 'none'; ?>; border-radius: 10px; border-left: 4px solid #059669;">
+                    <i class="fas fa-award text-warning mr-1"></i> Instruktur Penguji Aktif: <strong id="labelActiveInstructorName"><?php echo htmlspecialchars($active_instructor_name ?: ($logged_name ?: $active_instructor_id)); ?></strong> (<span id="labelActiveInstructorId"><?php echo htmlspecialchars($active_instructor_id); ?></span>)
+                  </div>
+
+                  <!-- 3. Instruktur Pembimbing (Pencarian Nama & Tombol Cepat - Khusus Mode Peserta) -->
+                  <div class="form-group mb-3" id="groupInstructor" style="display: <?php echo $can_evaluate ? 'none' : 'block'; ?>;">
                     <label class="font-weight-bold text-dark small text-uppercase d-flex align-items-center justify-content-between">
                       <span><i class="fas fa-user-tie text-success mr-1"></i> Instruktur Pembimbing / Penguji <span class="text-danger">*</span></span>
                       <span class="badge badge-light border text-muted font-weight-normal">Cari Nama / Pilih Instruktur</span>
@@ -702,13 +729,13 @@
                       <label class="font-weight-bold text-dark small text-uppercase m-0">
                         <i class="fas fa-clipboard-check text-success mr-1"></i> Catatan Evaluasi Instruktur
                       </label>
-                      <?php if (!$can_evaluate): ?>
-                        <span class="badge badge-warning text-dark font-weight-bold"><i class="fas fa-lock mr-1"></i> Khusus Diisi Instruktur</span>
-                      <?php endif; ?>
+                      <span class="badge badge-warning text-dark font-weight-bold" id="badgeEvalLock" style="display: <?php echo $can_evaluate ? 'none' : 'inline-block'; ?>;">
+                        <i class="fas fa-lock mr-1"></i> Khusus Diisi Instruktur
+                      </span>
                     </div>
 
-                    <?php if ($can_evaluate): ?>
-                      <!-- Instruktur / Admin Input -->
+                    <!-- Sub-container 1: Kontrol Evaluasi Aktif (Mode Instruktur) -->
+                    <div id="containerInstructorEvaluation" style="display: <?php echo $can_evaluate ? 'block' : 'none'; ?>;">
                       <div class="mb-2">
                         <label class="small text-muted font-weight-bold text-uppercase d-block mb-1">Hasil Evaluasi / Kelulusan Peserta:</label>
                         <label>
@@ -728,19 +755,21 @@
                       <textarea class="form-control" id="description" name="description" rows="3" 
                                 placeholder="Tuliskan catatan evaluasi penyembelihan untuk peserta ini (misal: teknik rebah baik, bilah tajam, 3 saluran trakea/esofagus/jugular putus sempurna)..."></textarea>
                       <small class="text-muted">Catatan evaluasi ini langsung tersimpan ke profil anggota dan riwayat kelulusan peserta.</small>
-                    <?php else: ?>
-                      <!-- Peserta Biasa (Read-Only) -->
+                    </div>
+
+                    <!-- Sub-container 2: Read-Only Info untuk Peserta (Mode Peserta) -->
+                    <div id="containerParticipantEvaluation" style="display: <?php echo $can_evaluate ? 'none' : 'block'; ?>;">
                       <div class="alert alert-light border small text-muted mb-2">
                         <i class="fas fa-info-circle text-success mr-1"></i> <strong>Informasi untuk Peserta:</strong> Catatan evaluasi hanya dapat diisi oleh Instruktur Penguji. Setelah Anda menyembelih di RPH, Instruktur akan memberikan penilaian dan evaluasi yang langsung tampil di profil Anda.
                       </div>
                       <textarea class="form-control bg-light" rows="2" readonly 
                                 placeholder="Menunggu penilaian dan catatan evaluasi dari Instruktur Pembimbing..."></textarea>
-                    <?php endif; ?>
+                    </div>
                   </div>
 
                   <!-- Submit Action Button -->
-                  <button type="submit" class="btn btn-submit-presensi btn-block" id="btnSubmitPresensi">
-                    <i class="fas fa-save mr-2"></i> <?php echo $can_evaluate ? 'Simpan & Sahkan Evaluasi Peserta' : 'Kirim Presensi Kehadiran'; ?>
+                  <button type="submit" class="btn <?php echo $can_evaluate ? 'btn-success' : 'btn-submit-presensi'; ?> btn-block font-weight-bold" id="btnSubmitPresensi">
+                    <i class="fas <?php echo $can_evaluate ? 'fa-save' : 'fa-paper-plane'; ?> mr-2"></i> <?php echo $can_evaluate ? 'Simpan & Sahkan Evaluasi Peserta' : 'Kirim Presensi Kehadiran'; ?>
                   </button>
 
                 </form>
@@ -777,7 +806,10 @@ let availableCameras = [];
 let currentCameraIndex = 0;
 let isTorchOn = false;
 let activeInstructorId = '<?php echo addslashes($active_instructor_id ?? ""); ?>';
+let activeInstructorName = '<?php echo addslashes($active_instructor_name ?? ($is_instructor ? $logged_name : "")); ?>';
 let canEvaluate = <?php echo $can_evaluate ? 'true' : 'false'; ?>;
+let currentUIMode = '<?php echo $can_evaluate ? "instruktur" : "peserta"; ?>';
+let isScanCooldown = false;
 
 function playBeep() {
   try {
@@ -800,14 +832,116 @@ function playBeep() {
   }
 }
 
+// Pengatur Dua Arah Mode: Peserta Praktik vs Instruktur Resmi
+function setUIMode(mode, memberData) {
+  currentUIMode = mode;
+  
+  if (mode === 'instruktur') {
+    canEvaluate = true;
+    
+    // Update tombol tab atas
+    $('#btnTabInstruktur').addClass('btn-success text-white shadow-sm').removeClass('btn-light text-muted');
+    $('#btnTabPeserta').removeClass('btn-success text-white shadow-sm').addClass('btn-light text-muted');
+    
+    // Header badge
+    $('#formModeBadge').removeClass('badge-warning text-dark').addClass('badge-success text-white');
+    $('#formModeBadge').html('<i class="fas fa-user-shield mr-1"></i> <span id="formModeBadgeText">Mode Instruktur</span>');
+    $('#formHeaderTitle').html('<i class="fas fa-clipboard-check mr-2"></i> Form Evaluasi Peserta Praktik');
+    
+    // Alert banner
+    $('#modeAlertBanner').css({ background: '#ecfdf5', color: '#065f46' });
+    $('#modeAlertIcon').removeClass('fa-id-card text-info').addClass('fa-user-shield text-success');
+    $('#modeAlertText').text('Mode Instruktur Aktif. Pilih peserta dari antrean di atas atau scan KTA fisik peserta untuk mengisi evaluasi.');
+    
+    // Tampilkan panel antrean peserta
+    $('#sectionQueueEvaluations').slideDown(250);
+    
+    // Sembunyikan pemilihan instruktur pembimbing (karena instruktur yang sedang aktif adalah penilainya)
+    $('#groupInstructor').slideUp(200);
+    $('#infoInstructorActive').slideDown(200);
+    
+    if (memberData && memberData.is_instructor) {
+      activeInstructorId = memberData.juleha_id;
+      activeInstructorName = memberData.name;
+    }
+    
+    if (activeInstructorId) {
+      $('#evaluator_id').val(activeInstructorId);
+      $('#instructor_id').val(activeInstructorId);
+      $('#queueInstructorName').text(activeInstructorName || activeInstructorId);
+      $('#queueInstructorId').text(activeInstructorId);
+      $('#labelActiveInstructorName').text(activeInstructorName || activeInstructorId);
+      $('#labelActiveInstructorId').text(activeInstructorId);
+      loadPendingQueue(activeInstructorId);
+    }
+    
+    // Buka kontrol evaluasi & catatan
+    $('#containerInstructorEvaluation').slideDown(200);
+    $('#containerParticipantEvaluation').slideUp(200);
+    $('#badgeEvalLock').hide();
+    
+    $('#labelJulehaId').html('<i class="fas fa-user-check text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
+    $('#helpJulehaId').text('Pilih peserta dari Antrean di atas atau ketik ID peserta untuk mengisi evaluasi.');
+    $('#btnSubmitPresensi').html('<i class="fas fa-save mr-2"></i> Simpan & Sahkan Evaluasi Peserta').removeClass('btn-submit-presensi').addClass('btn-success');
+    
+    // Jika baru saja beralih dari scan KTA instruktur, kosongkan kolom ID peserta agar siap diisi peserta yang diuji
+    if (memberData && memberData.is_instructor) {
+      $('#juleha_id').val('');
+      $('#field_id').val('');
+    }
+    
+  } else {
+    // Mode Peserta
+    canEvaluate = false;
+    
+    // Update tombol tab atas
+    $('#btnTabPeserta').addClass('btn-success text-white shadow-sm').removeClass('btn-light text-muted');
+    $('#btnTabInstruktur').removeClass('btn-success text-white shadow-sm').addClass('btn-light text-muted');
+    
+    // Header badge
+    $('#formModeBadge').removeClass('badge-success text-white').addClass('badge-warning text-dark');
+    $('#formModeBadge').html('<i class="fas fa-user mr-1"></i> <span id="formModeBadgeText">Mode Peserta</span>');
+    $('#formHeaderTitle').html('<i class="fas fa-edit mr-2"></i> Form Presensi Peserta Praktik');
+    
+    // Alert banner
+    $('#modeAlertBanner').css({ background: '#e0f2fe', color: '#0369a1' });
+    $('#modeAlertIcon').removeClass('fa-user-shield text-success').addClass('fa-id-card text-info');
+    $('#modeAlertText').text('Mode Peserta Aktif. Silakan pilih Instruktur Pembimbing Anda di bawah ini lalu klik Kirim Presensi Kehadiran.');
+    
+    // Sembunyikan panel antrean peserta
+    $('#sectionQueueEvaluations').slideUp(200);
+    
+    // Tampilkan pilihan instruktur pembimbing
+    $('#groupInstructor').slideDown(200);
+    $('#infoInstructorActive').slideUp(200);
+    $('#evaluator_id').val('');
+    
+    // Kunci evaluasi (hanya info readonly untuk peserta)
+    $('#containerInstructorEvaluation').slideUp(200);
+    $('#containerParticipantEvaluation').slideDown(200);
+    $('#badgeEvalLock').show();
+    
+    $('#labelJulehaId').html('<i class="fas fa-id-card text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
+    $('#helpJulehaId').text('ID Anda terisi otomatis dari scan kartu KTA.');
+    $('#btnSubmitPresensi').html('<i class="fas fa-paper-plane mr-2"></i> Kirim Presensi Kehadiran').removeClass('btn-success').addClass('btn-submit-presensi');
+    
+    if (memberData && !memberData.is_instructor) {
+      $('#juleha_id').val(memberData.juleha_id);
+    }
+  }
+}
+
 // Inisialisasi Daftar Kamera HP dengan urutan kamera belakang terlebih dahulu
 function initCameras() {
   if (typeof Html5Qrcode === 'undefined') {
     return;
   }
   Html5Qrcode.getCameras().then(devices => {
+    const $select = $('#cameraSelect');
+    $select.empty();
+    $select.append('<option value="auto">📷 Kamera Belakang (Otomatis & Autofokus)</option>');
+
     if (devices && devices.length > 0) {
-      // Prioritaskan kamera belakang (environment) di urutan pertama
       availableCameras = devices.sort((a, b) => {
         const aL = (a.label || '').toLowerCase();
         const bL = (b.label || '').toLowerCase();
@@ -818,27 +952,23 @@ function initCameras() {
         return 0;
       });
 
-      const $select = $('#cameraSelect');
-      $select.empty();
       availableCameras.forEach((camera, i) => {
         let label = camera.label || ('Kamera ' + (i + 1));
         const l = label.toLowerCase();
         if (l.includes('back') || l.includes('rear') || l.includes('belakang')) {
-          label = '📷 Kamera Belakang (' + (i + 1) + ')';
+          label = '📷 Kamera Belakang Lensa (' + (i + 1) + ')';
         } else if (l.includes('front') || l.includes('depan') || l.includes('selfie')) {
           label = '🤳 Kamera Depan';
         }
         $select.append(`<option value="${camera.id}">${label}</option>`);
       });
 
-      currentCameraIndex = 0;
-      $select.val(availableCameras[0].id);
-
       if (devices.length > 1) {
         $select.show();
         $('#btnSwitchCamera').show();
       }
     }
+    $select.val('auto');
   }).catch(err => {
     console.warn("Camera check:", err);
   });
@@ -861,33 +991,22 @@ function startCamera() {
     html5QrCode = new Html5Qrcode("reader", {
       formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
       experimentalFeatures: {
-        useBarCodeDetectorIfSupported: true // Deteksi QR Code secepat native app
+        useBarCodeDetectorIfSupported: true // Deteksi QR Code secepat native app (hardware accelerated)
       },
       verbose: false
     });
   }
 
-  // Konfigurasi scan ultra responsif (90% viewport agar tidak terpotong)
+  // Konfigurasi scan ultra responsif scan full frame tanpa cropping (seperti aplikasi scanner native)
   const scanConfig = {
-    fps: 25,
-    qrbox: function(viewfinderWidth, viewfinderHeight) {
-      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-      return {
-        width: Math.floor(minEdge * 0.90),
-        height: Math.floor(minEdge * 0.90)
-      };
-    },
-    aspectRatio: 1.0
+    fps: 15,
+    disableFlip: true
   };
 
-  let cameraSource = null;
+  let cameraSource = { facingMode: "environment" };
   const selectedDevId = $('#cameraSelect').val();
-  if (selectedDevId) {
+  if (selectedDevId && selectedDevId !== 'auto') {
     cameraSource = selectedDevId;
-  } else if (availableCameras.length > 0) {
-    cameraSource = availableCameras[currentCameraIndex].id;
-  } else {
-    cameraSource = { facingMode: "environment" };
   }
 
   html5QrCode.start(
@@ -898,9 +1017,18 @@ function startCamera() {
   ).then(() => {
     isScanning = true;
     checkTorchSupport();
+
+    // Aktifkan continuous autofocus otomatis pada sensor kamera HP
+    try {
+      html5QrCode.applyVideoConstraints({
+        focusMode: "continuous",
+        advanced: [{ focusMode: "continuous" }]
+      }).catch(function(e) {});
+    } catch (e) {}
   }).catch(err => {
     console.warn("Camera primary start failed, trying environment fallback:", err);
-    html5QrCode.start({ facingMode: "environment" }, scanConfig, onScanSuccess, onScanFailure)
+    let fallbackSource = (availableCameras.length > 0 && availableCameras[0].id) ? availableCameras[0].id : { facingMode: "environment" };
+    html5QrCode.start(fallbackSource, scanConfig, onScanSuccess, onScanFailure)
       .then(() => {
         isScanning = true;
         checkTorchSupport();
@@ -1037,7 +1165,17 @@ $('#nativeCameraInput, #qrFileInput').on('change', function(e) {
 });
 
 function onScanSuccess(decodedText) {
+  if (isScanCooldown) return;
+  isScanCooldown = true;
+
   playBeep();
+
+  // Efek visual pulsa hijau sukses pada viewport scanner
+  $('#scannerViewport').addClass('scanner-success-flash');
+  setTimeout(function() {
+    $('#scannerViewport').removeClass('scanner-success-flash');
+  }, 600);
+
   let cleanId = decodedText.trim();
   const match = cleanId.match(/([A-Za-z]{3}\d{6})/i);
   if (match) {
@@ -1051,11 +1189,16 @@ function onScanSuccess(decodedText) {
   `).show();
 
   fetchMemberInfo(cleanId);
+
+  // Debounce 1.8 detik sebelum membaca QR berikutnya
+  setTimeout(function() {
+    isScanCooldown = false;
+  }, 1800);
 }
 
 function onScanFailure(error) {}
 
-// Ambil Informasi Anggota saat QR KTA terdeteksi
+// Ambil Informasi Anggota saat QR KTA terdeteksi & Otomatis Beralih Mode
 function fetchMemberInfo(julehaId) {
   if (!julehaId) return;
 
@@ -1077,26 +1220,61 @@ function fetchMemberInfo(julehaId) {
         $('#previewInstrukturCnt').text(resp.total_instruktur || 0);
         $('#previewPhoto').attr('src', resp.photo_url + '?t=' + new Date().getTime());
 
-        // Cek pengakuan Instruktur
+        // Logika Perpindahan Mode Dua Arah Otomatis
         if (resp.is_instructor) {
+          // Kartu yang terdeteksi adalah INSTRUKTUR RESMI!
           $('#badgeKtaInstructor').show();
           $('#quickInstructorActions').show();
           $('#scanFeedback').html(`
             <div class="alert alert-warning py-2 px-3 small font-weight-bold mb-0 text-dark">
-              <i class="fas fa-award text-warning mr-1"></i> Terdeteksi KTA Instruktur Resmi: <strong>${resp.name} (${resp.juleha_id})</strong>
+              <i class="fas fa-award text-warning mr-1"></i> Terdeteksi KTA Instruktur Resmi: <strong>${resp.name} (${resp.juleha_id})</strong>. Beralih ke Mode Instruktur.
             </div>
           `).show();
 
-          // Jika yang membuka adalah Instruktur, aktifkan mode instruktur & muat antrean peserta
-          activeInstructorId = resp.juleha_id;
-          $('#evaluator_id').val(resp.juleha_id);
-          loadPendingQueue(resp.juleha_id);
+          // Otomatis beralih ke Mode Instruktur!
+          setUIMode('instruktur', resp);
+
         } else {
+          // Kartu yang terdeteksi adalah PESERTA PRAKTIK!
           $('#badgeKtaInstructor').hide();
           $('#quickInstructorActions').hide();
-          $('#juleha_id').val(resp.juleha_id);
-          setRole('praktikan');
+
+          $('#scanFeedback').html(`
+            <div class="alert alert-success py-2 px-3 small font-weight-bold mb-0">
+              <i class="fas fa-user mr-1"></i> Terdeteksi Peserta Praktik: <strong>${resp.name} (${resp.juleha_id})</strong>. Beralih ke Mode Peserta.
+            </div>
+          `).show();
+
+          // Otomatis beralih ke Mode Peserta!
+          setUIMode('peserta', resp);
         }
+
+        $('#memberPreviewCard').slideDown(250);
+      } else {
+        $('#memberPreviewCard').slideUp(200);
+        if (resp && resp.message) {
+          $('#scanFeedback').html(`
+            <div class="alert alert-danger py-2 px-3 small font-weight-bold mb-0">
+              <i class="fas fa-exclamation-circle mr-1"></i> ${resp.message}
+            </div>
+          `).show();
+        }
+      }
+    },
+    error: function(xhr, status, error) {
+      $('#btnCekAnggota').html('<i class="fas fa-search mr-1"></i> Cek Anggota').prop('disabled', false);
+      console.warn("get_member_ajax error:", status, error);
+    }
+  });
+}
+
+// Handler tombol tab mode
+$('#btnTabPeserta').on('click', function() {
+  setUIMode('peserta');
+});
+$('#btnTabInstruktur').on('click', function() {
+  setUIMode('instruktur');
+});
 
         $('#memberPreviewCard').slideDown(250);
       } else {
@@ -1325,15 +1503,24 @@ function renderQueueList(items) {
 
 // Saat Instruktur memilih peserta dari Antrean untuk diberi evaluasi
 function selectParticipantForEvaluation(item) {
+  // Pastikan form dalam Mode Instruktur
+  setUIMode('instruktur');
+
   $('#field_id').val(item.praktek_id);
   $('#juleha_id').val(item.juleha_id);
-  fetchMemberInfo(item.juleha_id);
+  
+  // Tampilkan kartu profil peserta yang dievaluasi
+  $('#previewJulehaId').text('ID: ' + item.juleha_id);
+  $('#previewRegion').text(item.region ? ('Wilayah: ' + item.region) : 'Jawa Timur');
+  $('#previewName').text(item.fullname);
+  $('#previewPhoto').attr('src', item.photo_url + '?t=' + new Date().getTime());
+  $('#memberPreviewCard').slideDown(250);
 
   // Set jenis sembelihan & RPH sesuai inputan peserta
   $(`input[name="animal_type"][value="${item.animal_type}"]`).prop('checked', true);
   $('#rph_id').val(item.rph_id);
 
-  $('#formHeaderTitle').html(`<i class="fas fa-star text-warning mr-2"></i> Evaluasi Peserta: <strong>${item.fullname} (${item.juleha_id})</strong>`);
+  $('#formHeaderTitle').html(`<i class="fas fa-clipboard-check text-warning mr-2"></i> Evaluasi Peserta: <strong>${item.fullname} (${item.juleha_id})</strong>`);
   $('#description').focus();
 
   // Scroll smooth ke form evaluasi
@@ -1352,6 +1539,7 @@ function setRole(role) {
     $('#btnRoleInstruktur').addClass('active btn-primary').removeClass('btn-outline-primary');
     $('#btnRolePraktikan').removeClass('active btn-success').addClass('btn-outline-success');
     $('#groupInstructor').slideUp(200);
+    $('#infoInstructorActive').slideUp(200);
     $('#groupEvaluation').slideUp(200);
     $('#labelJulehaId').html('<i class="fas fa-id-card text-success mr-1"></i> ID Instruktur yang Bertugas <span class="text-danger">*</span>');
     if (activeInstructorId) {
@@ -1361,10 +1549,18 @@ function setRole(role) {
   } else {
     $('#btnRolePraktikan').addClass('active btn-success').removeClass('btn-outline-success');
     $('#btnRoleInstruktur').removeClass('active btn-primary').addClass('btn-outline-primary');
-    $('#groupInstructor').slideDown(200);
     $('#groupEvaluation').slideDown(200);
-    $('#labelJulehaId').html('<i class="fas fa-id-card text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
-    $('#btnSubmitPresensi').html('<i class="fas fa-save mr-2"></i> <?php echo $can_evaluate ? "Simpan & Sahkan Evaluasi Peserta" : "Kirim Presensi Kehadiran"; ?>');
+    if (canEvaluate) {
+      $('#groupInstructor').slideUp(200);
+      $('#infoInstructorActive').slideDown(200);
+      $('#labelJulehaId').html('<i class="fas fa-user-check text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
+      $('#btnSubmitPresensi').html('<i class="fas fa-save mr-2"></i> Simpan & Sahkan Evaluasi Peserta').removeClass('btn-submit-presensi').addClass('btn-success');
+    } else {
+      $('#groupInstructor').slideDown(200);
+      $('#infoInstructorActive').slideUp(200);
+      $('#labelJulehaId').html('<i class="fas fa-id-card text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
+      $('#btnSubmitPresensi').html('<i class="fas fa-paper-plane mr-2"></i> Kirim Presensi Kehadiran').removeClass('btn-success').addClass('btn-submit-presensi');
+    }
   }
 }
 
@@ -1425,6 +1621,9 @@ $(document).ready(function() {
   initCameras();
   $('#btnStartCamera').on('click', startCamera);
   $('#btnStopCamera').on('click', stopCamera);
+
+  // Set mode awal sesuai state pembukaan halaman
+  setUIMode(currentUIMode);
 
   const prefill = $('#juleha_id').val().trim();
   if (prefill) {
