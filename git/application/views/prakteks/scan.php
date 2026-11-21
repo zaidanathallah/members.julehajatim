@@ -389,7 +389,8 @@
                   </div>
                   <div id="cameraPlaceholder" class="p-4 text-center text-white">
                     <i class="fas fa-qrcode fa-3x mb-3 text-success"></i>
-                    <p class="small text-white-50 mb-3">Arahkan kamera ke QR KTA fisik untuk scan cepat, atau ambil foto dengan kamera HP</p>
+                    <p class="small text-white-50 mb-3" id="cameraHelpText">Arahkan kamera ke QR KTA fisik untuk scan cepat, atau ambil foto dengan kamera HP</p>
+                    <div id="cameraNoticeMsg" class="mb-3" style="display: none;"></div>
                     <div class="d-flex flex-column align-items-center" style="gap: 10px;">
                       <button type="button" class="btn btn-success btn-sm px-4 py-2 rounded-pill font-weight-bold shadow" id="btnStartCamera">
                         <i class="fas fa-video mr-1"></i> Buka Kamera Scanner Live
@@ -1019,12 +1020,13 @@ function initCameras() {
 }
 
 // Start Camera dengan BarcodeDetector bawaan Android + Flashlight Support
-function startCamera() {
+function startCamera(isAutoStart = false) {
   if (isScanning) return;
 
   $('#cameraPlaceholder').hide();
   $('#scannerOverlay').show();
-  $('#cameraStatusBadge').text('Kamera Aktif').removeClass('badge-light badge-danger badge-warning').addClass('badge-success');
+  $('#cameraNoticeMsg').hide();
+  $('#cameraStatusBadge').text('Menghubungkan Kamera...').removeClass('badge-light badge-danger badge-warning badge-success').addClass('badge-info');
   $('#btnStopCamera').show();
   if (availableCameras.length > 1) {
     $('#btnSwitchCamera').show();
@@ -1045,13 +1047,15 @@ function startCamera() {
     });
   }
 
-  // Konfigurasi scan ultra responsif
+  // Konfigurasi scan aman tanpa exception viewfinder size
   const scanConfig = {
     fps: 20,
     qrbox: function(viewfinderWidth, viewfinderHeight) {
-      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-      const edge = Math.max(220, Math.floor(minEdge * 0.85));
-      return { width: edge, height: edge };
+      const minDimension = Math.min(viewfinderWidth, viewfinderHeight);
+      if (!minDimension || minDimension < 60) return undefined;
+      const size = Math.floor(minDimension * 0.72);
+      const safeSize = Math.max(80, Math.min(size, viewfinderWidth - 10, viewfinderHeight - 10));
+      return { width: safeSize, height: safeSize };
     },
     aspectRatio: 1.0,
     disableFlip: true
@@ -1061,15 +1065,13 @@ function startCamera() {
   const selectedDevId = $('#cameraSelect').val();
   if (selectedDevId && selectedDevId !== 'auto') {
     cameraSource = selectedDevId;
+  } else if (availableCameras.length > 0 && availableCameras[currentCameraIndex] && availableCameras[currentCameraIndex].id) {
+    cameraSource = availableCameras[currentCameraIndex].id;
   }
 
-  html5QrCode.start(
-    cameraSource,
-    scanConfig,
-    onScanSuccess,
-    onScanFailure
-  ).then(() => {
+  const handleCameraStartSuccess = function() {
     isScanning = true;
+    $('#cameraStatusBadge').text('Kamera Aktif').removeClass('badge-info badge-light badge-danger badge-warning').addClass('badge-success');
     checkTorchSupport();
 
     // Aktifkan continuous autofocus otomatis pada sensor kamera HP
@@ -1079,31 +1081,45 @@ function startCamera() {
         advanced: [{ focusMode: "continuous" }]
       }).catch(function(e) {});
     } catch (e) {}
-  }).catch(err => {
-    console.warn("Camera primary start failed, trying environment fallback:", err);
-    let fallbackSource = (availableCameras.length > 0 && availableCameras[0].id) ? availableCameras[0].id : { facingMode: "environment" };
+  };
+
+  const handleCameraStartFailure = function(err) {
+    console.warn("Camera start primary attempt failed:", err);
+
+    // Coba fallback dengan facingMode environment generik jika sebelumnya gagal dengan device ID spesifik
+    const fallbackSource = (typeof cameraSource === 'string') ? { facingMode: "environment" } : (availableCameras.length > 0 ? availableCameras[0].id : { facingMode: "user" });
+
     html5QrCode.start(fallbackSource, scanConfig, onScanSuccess, onScanFailure)
-      .then(() => {
-        isScanning = true;
-        checkTorchSupport();
-      })
+      .then(handleCameraStartSuccess)
       .catch(fallbackErr => {
-        console.error("Camera fallback failed:", fallbackErr);
-        $('#cameraStatusBadge').text('Terkendala').removeClass('badge-success').addClass('badge-warning');
-        $('#cameraPlaceholder').show().html(`
-          <i class="fas fa-camera fa-2x text-warning mb-2"></i>
-          <p class="small text-white mb-2">Streaming kamera terkendala izin browser / HTTPS.<br>Gunakan tombol <strong>Foto Kamera HP</strong> di bawah untuk scan langsung.</p>
-          <button class="btn btn-sm btn-light font-weight-bold" id="btnSnapNativeCameraFallback"><i class="fas fa-camera mr-1 text-success"></i> Ambil Foto QR dengan Kamera HP</button>
-        `);
-        $('#btnSnapNativeCameraFallback').on('click', function() {
-          $('#nativeCameraInput').click();
-        });
+        console.warn("All camera start attempts failed:", fallbackErr);
+        isScanning = false;
         $('#scannerOverlay').hide();
         $('#btnStopCamera').hide();
-        $('#btnSwitchCamera').hide();
         $('#btnToggleTorch').hide();
+        $('#cameraPlaceholder').show();
+
+        if (isAutoStart) {
+          // Jika gagal pada auto-start saat buka halaman (misal browser memblokir autoplay),
+          // tetap biarkan status Kamera Siap tanpa pesan error menakutkan, agar user bisa klik tombol Buka Kamera Live secara natural
+          $('#cameraStatusBadge').text('Kamera Siap').removeClass('badge-info badge-success badge-warning badge-danger').addClass('badge-light');
+        } else {
+          $('#cameraStatusBadge').text('Kamera Siap').removeClass('badge-info badge-success badge-warning badge-danger').addClass('badge-light');
+          $('#cameraNoticeMsg').html(`
+            <div class="alert alert-warning py-2 px-3 small font-weight-bold mb-0 text-dark" style="border-radius: 8px;">
+              <i class="fas fa-exclamation-triangle mr-1"></i> Kamera live memerlukan izin browser. Silakan klik tombol hijau di bawah, atau gunakan <strong>Foto Kamera HP</strong>.
+            </div>
+          `).show();
+        }
       });
-  });
+  };
+
+  html5QrCode.start(
+    cameraSource,
+    scanConfig,
+    onScanSuccess,
+    onScanFailure
+  ).then(handleCameraStartSuccess).catch(handleCameraStartFailure);
 }
 
 function checkTorchSupport() {
@@ -1150,7 +1166,8 @@ function stopCamera() {
       isScanning = false;
       $('#scannerOverlay').hide();
       $('#cameraPlaceholder').show();
-      $('#cameraStatusBadge').text('Kamera Dimatikan').removeClass('badge-success badge-warning badge-danger').addClass('badge-light');
+      $('#cameraNoticeMsg').hide();
+      $('#cameraStatusBadge').text('Kamera Dimatikan').removeClass('badge-success badge-warning badge-danger badge-info').addClass('badge-light');
       $('#btnStopCamera').hide();
       $('#btnSwitchCamera').hide();
       $('#cameraSelect').hide();
@@ -1169,14 +1186,14 @@ $('#btnSwitchCamera').on('click', function() {
     if (isScanning && html5QrCode) {
       html5QrCode.stop().then(() => {
         isScanning = false;
-        startCamera();
+        startCamera(false);
       });
     }
   } else {
     if (isScanning && html5QrCode) {
       html5QrCode.stop().then(() => {
         isScanning = false;
-        startCamera();
+        startCamera(false);
       });
     }
   }
@@ -1186,7 +1203,7 @@ $('#cameraSelect').on('change', function() {
   if (isScanning && html5QrCode) {
     html5QrCode.stop().then(() => {
       isScanning = false;
-      startCamera();
+      startCamera(false);
     });
   }
 });
@@ -1621,13 +1638,31 @@ $('#formPresensi').on('submit', function(e) {
     success: function(resp) {
       $btn.html('<i class="fas fa-save mr-2"></i> Simpan Presensi').prop('disabled', false);
       if (resp && resp.status) {
-        alert(resp.message);
+        // Reset ID peserta yang selesai disimpan
+        if (currentUIMode === 'peserta') {
+          $('#juleha_id').val('');
+        }
         $('#description').val('');
         $('#field_id').val('');
         $('#memberPreviewCard').slideUp(200);
         $('#scanFeedback').html(`
-          <div class="alert alert-success py-2 px-3 small font-weight-bold mb-0">
-            <i class="fas fa-check-double mr-1"></i> Data berhasil tersimpan di database secara realtime! Siap memproses data berikutnya.
+          <div class="alert alert-success py-3 px-3 shadow-sm mb-3" style="border-radius: 12px; border: 1.5px solid #10b981; background: #ecfdf5;">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fas fa-check-circle fa-2x mr-2 text-success"></i>
+              <div>
+                <h6 class="font-weight-bold mb-0 text-success">Presensi Berhasil Disimpan!</h6>
+                <span class="small text-muted">${resp.message || 'Data realtime tercatat di database.'}</span>
+              </div>
+            </div>
+            <hr class="my-2" style="border-color: #a7f3d0;">
+            <div class="d-flex flex-wrap align-items-center justify-content-center" style="gap: 8px;">
+              <button type="button" class="btn btn-success btn-sm px-3 py-2 rounded-pill font-weight-bold shadow-sm" id="btnNextScan">
+                <i class="fas fa-qrcode mr-1"></i> Scan KTA Anggota / Instruktur Berikutnya
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-pill font-weight-bold" id="btnResetPresensiForm">
+                <i class="fas fa-redo mr-1"></i> Reset Form
+              </button>
+            </div>
           </div>
         `).show();
 
@@ -1635,6 +1670,9 @@ $('#formPresensi').on('submit', function(e) {
         if (canEvaluate || activeInstructorId) {
           loadPendingQueue();
         }
+
+        // Reset cooldown agar scanner langsung siap membaca KTA baru
+        isScanCooldown = false;
       } else {
         alert((resp && resp.message) ? resp.message : 'Gagal menyimpan data.');
       }
@@ -1646,9 +1684,35 @@ $('#formPresensi').on('submit', function(e) {
   });
 });
 
+// Aksi Lanjut: Scan Anggota Berikutnya & Reset Form
+$(document).on('click', '#btnNextScan', function() {
+  $('#juleha_id').val('').focus();
+  $('#field_id').val('');
+  $('#description').val('');
+  $('#memberPreviewCard').slideUp(200);
+  isScanCooldown = false;
+  $('html, body').animate({
+    scrollTop: $("#scannerViewport").offset().top - 80
+  }, 350);
+  if (!isScanning) {
+    startCamera(false);
+  }
+});
+
+$(document).on('click', '#btnResetPresensiForm', function() {
+  $('#juleha_id').val('').focus();
+  $('#field_id').val('');
+  $('#description').val('');
+  $('#memberPreviewCard').slideUp(200);
+  $('#scanFeedback').slideUp(200);
+  isScanCooldown = false;
+});
+
 $(document).ready(function() {
   initCameras();
-  $('#btnStartCamera').on('click', startCamera);
+  $(document).on('click', '#btnStartCamera', function() {
+    startCamera(false);
+  });
   $('#btnStopCamera').on('click', stopCamera);
 
   // Sub-Aksi Instruktur: Evaluasi Peserta vs Presensi Tugas Sendiri
@@ -1672,9 +1736,9 @@ $(document).ready(function() {
     loadPendingQueue(activeInstructorId);
   }
 
-  // Coba jalankan kamera secara langsung saat membuka halaman agar responsif
+  // Coba jalankan kamera secara halus saat membuka halaman agar responsif
   try {
-    startCamera();
+    startCamera(true);
   } catch (e) {
     console.warn("Auto-start camera notice:", e);
   }
