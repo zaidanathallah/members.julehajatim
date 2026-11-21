@@ -266,6 +266,52 @@
       color: #ffffff !important;
       border-color: #059669 !important;
     }
+
+    /* Mobile Responsive Rules (All Screen Sizes) */
+    @media (max-width: 768px) {
+      .main-header .navbar-nav.ml-auto {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+      }
+      .main-header .navbar-nav.ml-auto .nav-item {
+        margin: 0 !important;
+      }
+      .main-header .navbar-nav.ml-auto .btn {
+        font-size: 0.74rem !important;
+        padding: 5px 8px !important;
+        border-radius: 8px !important;
+        white-space: nowrap;
+      }
+      .content-header h1 {
+        font-size: 1.25rem !important;
+      }
+      .content-header p {
+        font-size: 0.78rem !important;
+      }
+      .card-header-juleha {
+        padding: 12px 14px !important;
+      }
+      .card-body {
+        padding: 14px !important;
+      }
+      .mode-tab-btn {
+        font-size: 0.78rem !important;
+        padding: 8px 6px !important;
+      }
+      .scanner-box {
+        min-height: 240px !important;
+      }
+      .scanner-overlay {
+        width: 200px !important;
+        height: 200px !important;
+      }
+      .btn-quick-instructor {
+        font-size: 0.75rem !important;
+        padding: 4px 8px !important;
+      }
+    }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -289,20 +335,20 @@
       <?php if (!empty($is_logged_in)): ?>
         <?php if (!empty($is_admin)): ?>
           <li class="nav-item">
-            <a href="<?php echo base_url('prakteks/index'); ?>" class="btn btn-outline-secondary btn-sm rounded shadow-sm font-weight-bold px-3 mr-2">
-              <i class="fas fa-list mr-1"></i> Data Praktik
+            <a href="<?php echo base_url('prakteks/index'); ?>" class="btn btn-outline-secondary btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3 mr-1 mr-sm-2">
+              <i class="fas fa-list mr-1"></i> <span class="d-none d-sm-inline">Data Praktik</span><span class="d-inline d-sm-none">Data</span>
             </a>
           </li>
         <?php endif; ?>
         <li class="nav-item">
-          <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-3">
-            <i class="fas fa-sign-out-alt mr-1"></i> Keluar
+          <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3">
+            <i class="fas fa-sign-out-alt mr-1"></i> <span class="d-none d-sm-inline">Keluar</span><span class="d-inline d-sm-none">Keluar</span>
           </a>
         </li>
       <?php else: ?>
         <li class="nav-item">
-          <a href="<?php echo base_url('members/login'); ?>" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-3">
-            <i class="fas fa-sign-in-alt mr-1"></i> Login Instruktur
+          <a href="<?php echo base_url('members/login'); ?>" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3">
+            <i class="fas fa-sign-in-alt mr-1"></i> <span class="d-none d-sm-inline">Login Instruktur</span><span class="d-inline d-sm-none">Login</span>
           </a>
         </li>
       <?php endif; ?>

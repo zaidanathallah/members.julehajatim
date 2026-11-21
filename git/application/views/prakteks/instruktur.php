@@ -103,6 +103,51 @@
       border: 1.5px solid #86efac;
       border-radius: 12px;
     }
+
+    /* Table Mobile Optimization */
+    .table-responsive {
+      -webkit-overflow-scrolling: touch;
+      overflow-x: auto;
+      width: 100%;
+    }
+    .table-modern {
+      min-width: 800px !important;
+    }
+    .table-responsive::-webkit-scrollbar {
+      height: 6px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 4px;
+    }
+
+    /* Mobile Responsive Rules (All Screen Sizes) */
+    @media (max-width: 768px) {
+      .main-header .navbar-nav.ml-auto {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+      }
+      .main-header .navbar-nav.ml-auto .nav-item {
+        margin: 0 !important;
+      }
+      .main-header .navbar-nav.ml-auto .btn {
+        font-size: 0.74rem !important;
+        padding: 5px 8px !important;
+        border-radius: 8px !important;
+        white-space: nowrap;
+      }
+      .content-header h1 {
+        font-size: 1.25rem !important;
+      }
+      .content-header p {
+        font-size: 0.78rem !important;
+      }
+      .card-header-juleha {
+        padding: 12px 14px !important;
+      }
+    }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -124,13 +169,13 @@
 
     <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-outline-success btn-sm rounded shadow-sm font-weight-bold px-3 mr-2">
-          <i class="fas fa-qrcode mr-1"></i> Scan KTA
+        <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-outline-success btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3 mr-1 mr-sm-2">
+          <i class="fas fa-qrcode mr-1"></i> <span class="d-none d-sm-inline">Scan KTA</span><span class="d-inline d-sm-none">Scan</span>
         </a>
       </li>
       <li class="nav-item">
-        <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-3">
-          <i class="fas fa-sign-out-alt mr-1"></i> Keluar
+        <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3">
+          <i class="fas fa-sign-out-alt mr-1"></i> <span class="d-none d-sm-inline">Keluar</span><span class="d-inline d-sm-none">Keluar</span>
         </a>
       </li>
     </ul>
@@ -171,6 +216,12 @@
             <span class="badge badge-light px-3 py-1 font-weight-bold"><?php echo count($instructors); ?> Instruktur</span>
           </div>
           <div class="card-body p-0">
+            <!-- Mobile Swipe Indicator Helper -->
+            <div class="d-md-none alert alert-light border py-1 px-2 m-2 text-muted small d-flex align-items-center justify-content-between" style="border-radius: 8px; font-size: 0.75rem;">
+              <span><i class="fas fa-arrows-alt-h text-success mr-1"></i> Geser tabel ke kanan untuk melihat kolom lengkap</span>
+              <span class="badge badge-success font-weight-bold">Swipe &rarr;</span>
+            </div>
+
             <div class="table-responsive">
               <table class="table table-modern table-hover mb-0">
                 <thead>

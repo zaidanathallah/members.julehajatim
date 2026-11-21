@@ -74,6 +74,90 @@
       font-weight: 700;
       font-size: 0.95rem;
     }
+
+    /* Table Mobile Optimization */
+    .table-responsive {
+      -webkit-overflow-scrolling: touch;
+      overflow-x: auto;
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    #tableRekap {
+      min-width: 850px !important;
+    }
+    .table-responsive::-webkit-scrollbar {
+      height: 6px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 4px;
+    }
+
+    /* Mobile Responsive Rules (All Screen Sizes) */
+    @media (max-width: 768px) {
+      .main-header .navbar-nav.ml-auto {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+      }
+      .main-header .navbar-nav.ml-auto .nav-item {
+        margin: 0 !important;
+      }
+      .main-header .navbar-nav.ml-auto .btn {
+        font-size: 0.74rem !important;
+        padding: 5px 8px !important;
+        border-radius: 8px !important;
+        white-space: nowrap;
+      }
+      .content-header h1 {
+        font-size: 1.25rem !important;
+      }
+      .content-header p {
+        font-size: 0.78rem !important;
+      }
+      .card-header-juleha {
+        padding: 12px 14px !important;
+      }
+      .card-header-juleha h5 {
+        font-size: 0.98rem !important;
+        width: 100%;
+        margin-bottom: 8px !important;
+      }
+      .card-header-juleha .btn {
+        font-size: 0.75rem !important;
+        padding: 4px 8px !important;
+      }
+      .dt-buttons {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+        width: 100% !important;
+        margin-bottom: 10px !important;
+      }
+      .dt-buttons .btn {
+        flex: 1 1 calc(20% - 4px) !important;
+        min-width: 60px !important;
+        font-size: 0.72rem !important;
+        padding: 5px 4px !important;
+        border-radius: 6px !important;
+      }
+      .dataTables_filter {
+        text-align: left !important;
+        margin-top: 8px !important;
+      }
+      .dataTables_filter label {
+        display: flex !important;
+        width: 100% !important;
+        align-items: center;
+        gap: 6px;
+      }
+      .dataTables_filter input {
+        width: 100% !important;
+        margin-left: 0 !important;
+      }
+    }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -98,13 +182,13 @@
 
     <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-3 mr-2">
-          <i class="fas fa-qrcode mr-1"></i> Scan Presensi KTA
+        <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3 mr-1 mr-sm-2">
+          <i class="fas fa-qrcode mr-1"></i> <span class="d-none d-sm-inline">Scan Presensi KTA</span><span class="d-inline d-sm-none">Scan</span>
         </a>
       </li>
       <li class="nav-item">
-        <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-3">
-          <i class="fas fa-sign-out-alt mr-1"></i> Keluar
+        <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3">
+          <i class="fas fa-sign-out-alt mr-1"></i> <span class="d-none d-sm-inline">Keluar</span><span class="d-inline d-sm-none">Keluar</span>
         </a>
       </li>
     </ul>
@@ -146,15 +230,22 @@
           <div class="card-header-juleha d-flex flex-wrap align-items-center justify-content-between">
             <h5 class="m-0 font-weight-bold"><i class="fas fa-medal mr-2"></i> Rekap Jam Terbang Praktik Anggota</h5>
             <div class="mt-2 mt-sm-0">
-              <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-light btn-sm font-weight-bold text-success mr-2">
-                <i class="fas fa-qrcode mr-1"></i> Scan Presensi KTA
+              <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-light btn-sm font-weight-bold text-success mr-1 mr-sm-2">
+                <i class="fas fa-qrcode mr-1"></i> <span class="d-none d-sm-inline">Scan Presensi KTA</span><span class="d-inline d-sm-none">Scan</span>
               </a>
               <a href="<?php echo base_url('prakteks/index'); ?>" class="btn btn-outline-light btn-sm font-weight-bold">
-                <i class="fas fa-list mr-1"></i> Lihat Semua Riwayat
+                <i class="fas fa-list mr-1"></i> <span class="d-none d-sm-inline">Lihat Semua Riwayat</span><span class="d-inline d-sm-none">Riwayat</span>
               </a>
             </div>
           </div>
-          <div class="card-body p-3">
+          <div class="card-body p-2 p-sm-3">
+
+            <!-- Mobile Swipe Indicator Helper -->
+            <div class="d-md-none alert alert-light border py-1 px-2 mb-2 text-muted small d-flex align-items-center justify-content-between" style="border-radius: 8px; font-size: 0.75rem;">
+              <span><i class="fas fa-arrows-alt-h text-success mr-1"></i> Geser tabel ke kanan untuk melihat rincian jam terbang</span>
+              <span class="badge badge-success font-weight-bold">Swipe &rarr;</span>
+            </div>
+
             <div class="table-responsive">
               <table id="tableRekap" class="table table-hover table-striped align-middle mb-0" style="width:100%">
                 <thead class="bg-light">
@@ -280,7 +371,7 @@
 <script>
 $(document).ready(function() {
   $('#tableRekap').DataTable({
-    "responsive": true,
+    "responsive": false,
     "lengthChange": true,
     "autoWidth": false,
     "ordering": true,

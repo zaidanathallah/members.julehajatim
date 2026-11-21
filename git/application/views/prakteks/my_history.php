@@ -235,6 +235,89 @@
     .cert-ttd-space {
       height: 65px;
     }
+
+    /* Mobile Responsive Rules (All Screen Sizes) */
+    @media (max-width: 768px) {
+      .main-header .navbar-nav.ml-auto {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+      }
+      .main-header .navbar-nav.ml-auto .nav-item {
+        margin: 0 !important;
+      }
+      .main-header .navbar-nav.ml-auto .btn {
+        font-size: 0.74rem !important;
+        padding: 5px 8px !important;
+        border-radius: 8px !important;
+        white-space: nowrap;
+      }
+      .content-header h1 {
+        font-size: 1.25rem !important;
+      }
+      .content-header p {
+        font-size: 0.78rem !important;
+      }
+      .card-header-juleha {
+        padding: 12px 14px !important;
+      }
+      .card-header-juleha h5 {
+        font-size: 0.98rem !important;
+        width: 100%;
+        margin-bottom: 8px !important;
+      }
+      .card-header-juleha .btn {
+        font-size: 0.75rem !important;
+        padding: 4px 8px !important;
+      }
+      .profile-hero {
+        padding: 16px 14px !important;
+        border-radius: 14px;
+      }
+      .hero-avatar {
+        width: 60px !important;
+        height: 60px !important;
+        border-width: 2px !important;
+      }
+      .profile-hero h3 {
+        font-size: 1.15rem !important;
+      }
+      .profile-hero .stat-pill-container {
+        display: flex !important;
+        width: 100% !important;
+        gap: 6px !important;
+        margin-top: 10px;
+      }
+      .stat-pill {
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        padding: 8px 4px !important;
+        border-radius: 10px !important;
+      }
+      .stat-pill-val {
+        font-size: 1.15rem !important;
+      }
+      .stat-pill-lbl {
+        font-size: 0.65rem !important;
+        letter-spacing: 0px !important;
+      }
+      .export-member-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+        width: 100% !important;
+        margin-top: 8px !important;
+      }
+      .export-member-grid .btn {
+        width: 100% !important;
+        font-size: 0.72rem !important;
+        padding: 7px 4px !important;
+      }
+      .entry-card {
+        padding: 14px 12px !important;
+      }
+    }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -255,14 +338,14 @@
     </ul>
 
     <ul class="navbar-nav ml-auto">
-      <li class="nav-item mr-2">
-        <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-3">
-          <i class="fas fa-qrcode mr-1"></i> Scan Presensi KTA
+      <li class="nav-item">
+        <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3 mr-1 mr-sm-2">
+          <i class="fas fa-qrcode mr-1"></i> <span class="d-none d-sm-inline">Scan Presensi KTA</span><span class="d-inline d-sm-none">Scan</span>
         </a>
       </li>
       <li class="nav-item">
-        <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-3">
-          <i class="fas fa-sign-out-alt mr-1"></i> Keluar
+        <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3">
+          <i class="fas fa-sign-out-alt mr-1"></i> <span class="d-none d-sm-inline">Keluar</span><span class="d-inline d-sm-none">Keluar</span>
         </a>
       </li>
     </ul>
@@ -327,7 +410,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-5 d-flex justify-content-md-end justify-content-start" style="gap: 12px;">
+            <div class="col-md-5 d-flex justify-content-md-end justify-content-start stat-pill-container" style="gap: 12px;">
               <div class="stat-pill">
                 <div class="stat-pill-val"><?php echo (int)($practice_info['count_praktikan'] ?? 0); ?></div>
                 <div class="stat-lbl">Praktikan</div>
@@ -354,7 +437,9 @@
               <small class="text-muted">Unduh rekap jam terbang resmi Anda dalam berbagai format (Gambar, PDF, Excel, Cetak, Copy)</small>
             </div>
             
-            <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+            <div class="w-100 d-md-none mb-1"></div>
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between w-100-mobile" style="gap: 8px;">
               <div class="custom-control custom-checkbox mr-2">
                 <input type="checkbox" class="custom-control-input" id="checkAllHistory" checked>
                 <label class="custom-control-label font-weight-bold small text-dark" for="checkAllHistory">
@@ -362,21 +447,23 @@
                 </label>
               </div>
 
-              <button type="button" class="btn btn-primary btn-sm rounded shadow-sm font-weight-bold px-3" onclick="exportMemberRekap('png')" title="Unduh gambar kartu rekap resmi format PNG resolusi tinggi">
-                <i class="fas fa-image mr-1"></i> Gambar (.PNG)
-              </button>
-              <button type="button" class="btn btn-danger btn-sm rounded shadow-sm font-weight-bold px-3" onclick="exportMemberRekap('pdf')" title="Unduh dokumen resmi PDF">
-                <i class="fas fa-file-pdf mr-1"></i> PDF
-              </button>
-              <button type="button" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-3" onclick="exportMemberRekap('excel')" title="Unduh data tabel Excel/CSV">
-                <i class="fas fa-file-excel mr-1"></i> Excel
-              </button>
-              <button type="button" class="btn btn-info btn-sm rounded shadow-sm font-weight-bold px-3" onclick="exportMemberRekap('print')" title="Cetak langsung lembar riwayat praktik">
-                <i class="fas fa-print mr-1"></i> Cetak
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm rounded shadow-sm font-weight-bold px-3" onclick="exportMemberRekap('copy')" title="Salin rangkuman teks rapi untuk dikirim ke WhatsApp">
-                <i class="fas fa-copy mr-1"></i> Salin (WA)
-              </button>
+              <div class="export-member-grid d-flex flex-wrap align-items-center" style="gap: 6px;">
+                <button type="button" class="btn btn-primary btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3" onclick="exportMemberRekap('png')" title="Unduh gambar kartu rekap resmi format PNG">
+                  <i class="fas fa-image mr-1"></i> <span class="d-none d-sm-inline">Gambar (.PNG)</span><span class="d-inline d-sm-none">Gambar</span>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3" onclick="exportMemberRekap('pdf')" title="Unduh dokumen resmi PDF">
+                  <i class="fas fa-file-pdf mr-1"></i> PDF
+                </button>
+                <button type="button" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3" onclick="exportMemberRekap('excel')" title="Unduh data tabel Excel/CSV">
+                  <i class="fas fa-file-excel mr-1"></i> Excel
+                </button>
+                <button type="button" class="btn btn-info btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3" onclick="exportMemberRekap('print')" title="Cetak langsung lembar riwayat praktik">
+                  <i class="fas fa-print mr-1"></i> Cetak
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3" onclick="exportMemberRekap('copy')" title="Salin rangkuman teks rapi untuk WhatsApp">
+                  <i class="fas fa-copy mr-1"></i> <span class="d-none d-sm-inline">Salin (WA)</span><span class="d-inline d-sm-none">Salin</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -386,11 +473,11 @@
           <div class="card-header-juleha d-flex flex-wrap align-items-center justify-content-between">
             <h5 class="m-0 font-weight-bold"><i class="fas fa-clipboard-list mr-2"></i> Daftar Riwayat Praktik Lengkap</h5>
             <div class="mt-2 mt-sm-0">
-              <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-light btn-sm font-weight-bold text-success mr-2">
-                <i class="fas fa-qrcode mr-1"></i> Scan Presensi KTA
+              <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-light btn-sm font-weight-bold text-success mr-1 mr-sm-2">
+                <i class="fas fa-qrcode mr-1"></i> <span class="d-none d-sm-inline">Scan Presensi KTA</span><span class="d-inline d-sm-none">Scan</span>
               </a>
               <a href="<?php echo base_url('members/profile'); ?>" class="btn btn-outline-light btn-sm font-weight-bold">
-                <i class="fas fa-id-card mr-1"></i> Kembali ke Profil
+                <i class="fas fa-id-card mr-1"></i> <span class="d-none d-sm-inline">Kembali ke Profil</span><span class="d-inline d-sm-none">Profil</span>
               </a>
             </div>
           </div>

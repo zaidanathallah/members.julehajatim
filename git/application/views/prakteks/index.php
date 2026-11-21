@@ -154,6 +154,10 @@
       transition: all 0.3s ease;
       border: 2px solid #10b981;
     }
+    .selection-bar-header {
+      display: flex;
+      align-items: center;
+    }
 
     /* Checkbox Styling */
     .table-checkbox {
@@ -163,10 +167,159 @@
       accent-color: #059669;
     }
 
-    /* Preset Buttons */
+    /* Rekap Cepat Horizontal Scroll */
+    .rekap-cepat-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+    }
+    .rekap-cepat-wrapper::-webkit-scrollbar {
+      height: 4px;
+    }
+    .rekap-cepat-wrapper::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
     .preset-btn {
+      flex: 0 0 auto;
+      white-space: nowrap;
       transition: all 0.2s ease;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
+    }
+
+    /* Table Mobile Optimization */
+    .table-responsive {
+      -webkit-overflow-scrolling: touch;
+      overflow-x: auto;
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    #tablePraktik {
+      min-width: 1050px !important;
+    }
+    .table-responsive::-webkit-scrollbar {
+      height: 6px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 4px;
+    }
+
+    /* Mobile Responsive Rules (All Screen Sizes) */
+    @media (max-width: 768px) {
+      .main-header .navbar-nav.ml-auto {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+      }
+      .main-header .navbar-nav.ml-auto .nav-item {
+        margin: 0 !important;
+      }
+      .main-header .navbar-nav.ml-auto .btn {
+        font-size: 0.74rem !important;
+        padding: 5px 8px !important;
+        border-radius: 8px !important;
+        white-space: nowrap;
+      }
+      .content-header h1 {
+        font-size: 1.25rem !important;
+      }
+      .content-header p {
+        font-size: 0.78rem !important;
+      }
+      .dt-buttons {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 5px !important;
+        width: 100% !important;
+        margin-bottom: 10px !important;
+      }
+      .dt-buttons .btn {
+        flex: 1 1 calc(33.333% - 6px) !important;
+        min-width: 85px !important;
+        font-size: 0.75rem !important;
+        padding: 6px 6px !important;
+        border-radius: 8px !important;
+      }
+      .dataTables_filter {
+        text-align: left !important;
+        margin-top: 8px !important;
+      }
+      .dataTables_filter label {
+        display: flex !important;
+        width: 100% !important;
+        align-items: center;
+        gap: 6px;
+      }
+      .dataTables_filter input {
+        width: 100% !important;
+        margin-left: 0 !important;
+      }
+      .dataTables_length {
+        text-align: left !important;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .content-wrapper {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+      }
+      .stat-card {
+        padding: 12px 10px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+      }
+      .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        margin-right: 10px;
+        border-radius: 10px;
+      }
+      .stat-val {
+        font-size: 1.2rem;
+      }
+      .stat-lbl {
+        font-size: 0.7rem;
+        line-height: 1.2;
+      }
+      .selection-action-bar {
+        bottom: 10px !important;
+        left: 8px !important;
+        right: 8px !important;
+        transform: none !important;
+        width: calc(100% - 16px) !important;
+        border-radius: 14px !important;
+        padding: 10px 12px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+      }
+      .selection-action-bar .selection-bar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+      }
+      .selection-action-bar .btn-group {
+        display: grid !important;
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 4px !important;
+        width: 100% !important;
+      }
+      .selection-action-bar .btn-group .btn {
+        font-size: 0.68rem !important;
+        padding: 6px 2px !important;
+        border-radius: 6px !important;
+        text-align: center;
+      }
     }
 
     /* Export Sheet Container (Hidden on screen, rendered by html2canvas) */
@@ -292,18 +445,18 @@
 
     <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-3 mr-2">
-          <i class="fas fa-qrcode mr-1"></i> Scan Presensi KTA
+        <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-success btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3 mr-1 mr-sm-2">
+          <i class="fas fa-qrcode mr-1"></i> <span class="d-none d-sm-inline">Scan Presensi KTA</span><span class="d-inline d-sm-none">Scan</span>
         </a>
       </li>
       <li class="nav-item">
-        <a href="<?php echo base_url('prakteks/rekap_anggota'); ?>" class="btn btn-outline-secondary btn-sm rounded shadow-sm font-weight-bold px-3 mr-2">
-          <i class="fas fa-users mr-1"></i> Rekap per Anggota
+        <a href="<?php echo base_url('prakteks/rekap_anggota'); ?>" class="btn btn-outline-secondary btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3 mr-1 mr-sm-2">
+          <i class="fas fa-users mr-1"></i> <span class="d-none d-sm-inline">Rekap per Anggota</span><span class="d-inline d-sm-none">Rekap</span>
         </a>
       </li>
       <li class="nav-item">
-        <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-3">
-          <i class="fas fa-sign-out-alt mr-1"></i> Keluar
+        <a href="<?php echo base_url('members/logout'); ?>" class="btn btn-outline-danger btn-sm rounded shadow-sm font-weight-bold px-2 px-sm-3">
+          <i class="fas fa-sign-out-alt mr-1"></i> <span class="d-none d-sm-inline">Keluar</span>
         </a>
       </li>
     </ul>
@@ -382,8 +535,10 @@
         <!-- Filter Card: RPH, Waktu, Anggota, Status -->
         <div class="card-modern p-3 mb-4">
           <!-- Preset Waktu Cepat (Hari Ini, Bulan Ini, Tahun Ini, Semua Waktu) -->
-          <div class="mb-3 d-flex flex-wrap align-items-center" style="gap: 8px;">
-            <span class="small font-weight-bold text-muted mr-1"><i class="fas fa-bolt text-warning mr-1"></i> Rekap Cepat:</span>
+          <div class="mb-2 d-flex align-items-center">
+            <span class="small font-weight-bold text-muted mr-2"><i class="fas fa-bolt text-warning mr-1"></i> Rekap Cepat:</span>
+          </div>
+          <div class="rekap-cepat-wrapper mb-3">
             <?php 
               $is_today = (($filters['period'] ?? '') === 'today' || ($filters['date'] ?? '') === date('Y-m-d'));
               $is_this_month = (($filters['period'] ?? '') === 'this_month' || (($filters['month'] ?? '') == date('n') && ($filters['year'] ?? '') == date('Y') && empty($filters['date'])));
@@ -518,27 +673,33 @@
 
         <!-- Main Table Card with Checkbox Column -->
         <div class="card-modern">
-          <div class="card-header-juleha d-flex flex-wrap align-items-center justify-content-between">
-            <h5 class="m-0 font-weight-bold"><i class="fas fa-list mr-2"></i> Riwayat & Evaluasi Praktik di RPH</h5>
-            <div class="mt-2 mt-sm-0">
-              <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-light btn-sm font-weight-bold text-success mr-2">
-                <i class="fas fa-plus-circle mr-1"></i> Scan Presensi KTA
+          <div class="card-header-juleha d-flex flex-wrap align-items-center justify-content-between" style="gap: 8px;">
+            <h5 class="m-0 font-weight-bold" style="font-size: 1.15rem;"><i class="fas fa-list mr-2"></i> Riwayat & Evaluasi Praktik di RPH</h5>
+            <div class="d-flex align-items-center" style="gap: 6px;">
+              <a href="<?php echo base_url('prakteks/scan'); ?>" class="btn btn-light btn-sm font-weight-bold text-success shadow-sm">
+                <i class="fas fa-plus-circle mr-1"></i> Scan KTA
               </a>
               <a href="<?php echo base_url('prakteks/rekap_anggota'); ?>" class="btn btn-outline-light btn-sm font-weight-bold">
-                <i class="fas fa-chart-bar mr-1"></i> Rekap Tiap Anggota
+                <i class="fas fa-chart-bar mr-1"></i> Rekap Anggota
               </a>
             </div>
           </div>
-          <div class="card-body p-3">
+          <div class="card-body p-2 p-sm-3">
 
             <!-- Checkbox notice helper -->
             <div class="d-flex align-items-center justify-content-between mb-2">
-              <small class="text-muted">
-                <i class="fas fa-info-circle text-info mr-1"></i> Centang kotak di sebelah kiri baris untuk memilih data yang ingin direkap (Gambar, PDF, Excel, Cetak, Copy).
+              <small class="text-muted" style="font-size: 0.78rem;">
+                <i class="fas fa-info-circle text-info mr-1"></i> Centang kotak baris untuk memilih data yang ingin direkap.
               </small>
               <span id="labelCheckedCount" class="badge badge-light border text-dark font-weight-bold" style="display:none;">
                 0 data terpilih
               </span>
+            </div>
+
+            <!-- Mobile Swipe Indicator Helper -->
+            <div class="d-md-none alert alert-light border py-1 px-2 mb-2 text-muted small d-flex align-items-center justify-content-between" style="border-radius: 8px; font-size: 0.75rem;">
+              <span><i class="fas fa-arrows-alt-h text-success mr-1"></i> Geser tabel ke kanan untuk kolom lengkap</span>
+              <span class="badge badge-success font-weight-bold">Swipe &rarr;</span>
             </div>
 
             <div class="table-responsive">
@@ -705,29 +866,29 @@
 
   <!-- Floating Selection Action Bar -->
   <div id="selectionActionBar" class="selection-action-bar">
-    <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
-      <span class="badge badge-warning py-2 px-3 font-weight-bold text-dark" style="font-size: 0.88rem; border-radius: 20px;">
-        <i class="fas fa-check-square mr-1"></i> <span id="selectedCount">0</span> Baris Terpilih
+    <div class="selection-bar-header">
+      <span class="badge badge-warning py-1 py-sm-2 px-2 px-sm-3 font-weight-bold text-dark" style="font-size: 0.82rem; border-radius: 20px;">
+        <i class="fas fa-check-square mr-1"></i> <span id="selectedCount">0</span> Terpilih
       </span>
-      <div class="btn-group btn-group-sm">
-        <button type="button" class="btn btn-primary font-weight-bold px-3" onclick="triggerCustomExport('png')">
-          <i class="fas fa-image mr-1"></i> Gambar (.PNG)
-        </button>
-        <button type="button" class="btn btn-danger font-weight-bold px-3" onclick="triggerCustomExport('pdf')">
-          <i class="fas fa-file-pdf mr-1"></i> PDF
-        </button>
-        <button type="button" class="btn btn-success font-weight-bold px-3" onclick="triggerCustomExport('excel')">
-          <i class="fas fa-file-excel mr-1"></i> Excel
-        </button>
-        <button type="button" class="btn btn-info font-weight-bold px-3" onclick="triggerCustomExport('print')">
-          <i class="fas fa-print mr-1"></i> Cetak
-        </button>
-        <button type="button" class="btn btn-secondary font-weight-bold px-3" onclick="triggerCustomExport('copy')">
-          <i class="fas fa-copy mr-1"></i> Copy
-        </button>
-      </div>
-      <button type="button" class="btn btn-outline-light btn-sm font-weight-bold ml-2 rounded-circle" style="width:30px;height:30px;padding:0;" onclick="deselectAll()" title="Batal Centang">
+      <button type="button" class="btn btn-outline-light btn-sm font-weight-bold rounded-circle ml-2" style="width:28px;height:28px;padding:0;line-height:26px;" onclick="deselectAll()" title="Batal Centang">
         <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="btn-group btn-group-sm">
+      <button type="button" class="btn btn-primary font-weight-bold px-2 px-sm-3" onclick="triggerCustomExport('png')">
+        <i class="fas fa-image mr-1"></i> Gambar
+      </button>
+      <button type="button" class="btn btn-danger font-weight-bold px-2 px-sm-3" onclick="triggerCustomExport('pdf')">
+        <i class="fas fa-file-pdf mr-1"></i> PDF
+      </button>
+      <button type="button" class="btn btn-success font-weight-bold px-2 px-sm-3" onclick="triggerCustomExport('excel')">
+        <i class="fas fa-file-excel mr-1"></i> Excel
+      </button>
+      <button type="button" class="btn btn-info font-weight-bold px-2 px-sm-3" onclick="triggerCustomExport('print')">
+        <i class="fas fa-print mr-1"></i> Cetak
+      </button>
+      <button type="button" class="btn btn-secondary font-weight-bold px-2 px-sm-3" onclick="triggerCustomExport('copy')">
+        <i class="fas fa-copy mr-1"></i> Copy
       </button>
     </div>
   </div>
@@ -875,7 +1036,7 @@ let dataTableInstance = null;
 
 $(document).ready(function() {
   dataTableInstance = $('#tablePraktik').DataTable({
-    "responsive": true,
+    "responsive": false,
     "lengthChange": true,
     "autoWidth": false,
     "ordering": false,
