@@ -873,6 +873,16 @@ function setUIMode(mode, memberData) {
       $('#labelActiveInstructorName').text(activeInstructorName || activeInstructorId);
       $('#labelActiveInstructorId').text(activeInstructorId);
       loadPendingQueue(activeInstructorId);
+    } else {
+      $('#queueInstructorName').text('Belum Terdeteksi');
+      $('#queueInstructorId').text('Scan KTA');
+      $('#badgePendingCount').text('Scan KTA');
+      $('#queueLoading').hide();
+      $('#queueEmpty').show().html(`
+        <i class="fas fa-id-card fa-3x text-warning mb-2"></i>
+        <h6 class="font-weight-bold text-dark mb-1">KTA Instruktur Belum Di-scan</h6>
+        <p class="small text-muted mb-0">Silakan arahkan kamera ke QR KTA fisik Anda sebagai instruktur agar sistem mengenali penilai yang bertugas.</p>
+      `);
     }
     
     // Buka kontrol evaluasi & catatan
@@ -1276,25 +1286,6 @@ $('#btnTabInstruktur').on('click', function() {
   setUIMode('instruktur');
 });
 
-        $('#memberPreviewCard').slideDown(250);
-      } else {
-        $('#memberPreviewCard').slideUp(200);
-        if (resp && resp.message) {
-          $('#scanFeedback').html(`
-            <div class="alert alert-danger py-2 px-3 small font-weight-bold mb-0">
-              <i class="fas fa-exclamation-circle mr-1"></i> ${resp.message}
-            </div>
-          `).show();
-        }
-      }
-    },
-    error: function(xhr, status, error) {
-      $('#btnCekAnggota').html('<i class="fas fa-search mr-1"></i> Cek Anggota').prop('disabled', false);
-      console.warn("get_member_ajax error:", status, error);
-    }
-  });
-}
-
 $('#btnCekAnggota').on('click', function() {
   const id = $('#juleha_id').val().trim();
   if (!id) {
@@ -1633,6 +1624,13 @@ $(document).ready(function() {
   // Jika instruktur aktif, muat antrean evaluasi secara otomatis
   if (canEvaluate && activeInstructorId) {
     loadPendingQueue(activeInstructorId);
+  }
+
+  // Coba jalankan kamera secara langsung saat membuka halaman agar responsif
+  try {
+    startCamera();
+  } catch (e) {
+    console.warn("Auto-start camera notice:", e);
   }
 });
 </script>
