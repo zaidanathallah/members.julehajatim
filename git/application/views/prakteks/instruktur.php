@@ -309,7 +309,7 @@
                 <img src="/assets/adminlte/dist/img/avatar5.png" id="selectedMemberPhoto" class="rounded-circle mr-3 border" 
                      style="width: 56px; height: 56px; object-fit: cover; border-width: 2px !important; border-color: #10b981 !important;"
                      onerror="this.onerror=null;this.src='/assets/adminlte/dist/img/avatar5.png';">
-                <div class="grow">
+                <div class="grow" style="flex-grow: 1;">
                   <div class="d-flex align-items-center justify-content-between">
                     <h6 class="font-weight-bold mb-0 text-success" id="selectedMemberName">-</h6>
                     <span class="badge badge-success px-2 py-1 font-weight-bold" id="selectedMemberBadgeId">-</span>
@@ -421,7 +421,7 @@ function renderSearchResults(members) {
     const itemHtml = $(`
       <div class="search-item">
         <img src="${m.photo_url}" class="search-avatar" onerror="this.onerror=null;this.src='/assets/adminlte/dist/img/avatar5.png';">
-        <div class="grow pr-2">
+        <div class="grow pr-2" style="flex-grow: 1;">
           <div class="d-flex align-items-center justify-content-between">
             <strong class="text-dark" style="font-size: 0.95rem;">${m.fullname}</strong>
             <span class="badge badge-success px-2 py-1">${m.id}</span>
