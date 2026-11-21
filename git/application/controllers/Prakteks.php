@@ -1,6 +1,17 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Presensi & Praktik Juleha Jawa Timur
+ * 
+ * @property CI_DB_query_builder $db
+ * @property CI_Input $input
+ * @property CI_Session $session
+ * @property CI_URI $uri
+ * @property CI_Loader $load
+ * @property Praktek $praktek
+ * @property Member $member
+ */
 class Prakteks extends CI_Controller {
 
     public function __construct() {
@@ -348,27 +359,13 @@ class Prakteks extends CI_Controller {
                 $full_name = $m->nickname ?? $clean_id;
             }
 
-            // Hitung sesi praktik secara efisien dan aman
-            $count_praktikan = $this->db->where('juleha_id', $clean_id)
-                ->where('(role = "praktikan" OR role IS NULL OR role = "")')
-                ->from('prakteks')
-                ->count_all_results();
-
-            $count_instruktur = $this->db->group_start()
-                ->where('instructor_id', $clean_id)
-                ->or_where('(juleha_id = "' . $clean_id . '" AND role = "instruktur")')
-                ->group_end()
-                ->from('prakteks')
-                ->count_all_results();
+            // Hitung sesi praktik secara efisien dan aman melalui Model
+            $practice_counts = $this->praktek->count_member_practices($clean_id);
+            $count_praktikan = $practice_counts['praktikan'];
+            $count_instruktur = $practice_counts['instruktur'];
 
             $is_inst = $this->praktek->is_instructor($clean_id);
-
-            // Cek status admin secara aman tanpa PHP notice
-            $is_adm = false;
-            $mb = $this->db->select('memberlevel')->where('juleha_id', $clean_id)->get('members')->row();
-            if (!empty($mb) && $mb->memberlevel !== null && (int)$mb->memberlevel < 2) {
-                $is_adm = true;
-            }
+            $is_adm = $this->praktek->check_is_admin($clean_id);
 
             echo json_encode(array(
                 'status'           => true,
@@ -403,31 +400,7 @@ class Prakteks extends CI_Controller {
         $this->ensure_session_started();
 
         $q = trim($this->input->get('q') ?: $this->input->post('q'));
-        $this->db->select("juleha_id, nickname, firstname, lastname, region, position");
-        $this->db->from('members');
-
-        if (!empty($q)) {
-            // Support multi-kata (contoh: "Moch Maftuchin" atau "Zaidan Athallah")
-            $words = preg_split('/\s+/', $q);
-            foreach ($words as $w) {
-                $w = trim($w);
-                if ($w === '') continue;
-                $clean_w = $this->db->escape_like_str(strtolower($w));
-                $this->db->where("(
-                    LOWER(juleha_id) LIKE '%{$clean_w}%' OR
-                    LOWER(nickname) LIKE '%{$clean_w}%' OR
-                    LOWER(firstname) LIKE '%{$clean_w}%' OR
-                    LOWER(lastname) LIKE '%{$clean_w}%' OR
-                    LOWER(CONCAT_WS(' ', firstname, lastname)) LIKE '%{$clean_w}%' OR
-                    LOWER(CONCAT_WS(' ', nickname, firstname, lastname)) LIKE '%{$clean_w}%'
-                )", NULL, FALSE);
-            }
-        }
-
-        $this->db->order_by('firstname', 'ASC');
-        $this->db->order_by('nickname', 'ASC');
-        $this->db->limit(25);
-        $members = $this->db->get()->result();
+        $members = $this->praktek->search_members($q, 25);
 
         $results = array();
         foreach ($members as $m) {
@@ -511,37 +484,7 @@ class Prakteks extends CI_Controller {
             $instructor_id = strtoupper($matches[1]);
         }
 
-        $this->db->select("
-            p.id as praktek_id,
-            p.juleha_id,
-            p.praktekdate,
-            p.rph_id,
-            COALESCE(NULLIF(p.location_name, ''), r.name, 'RPH TOW') as location_name,
-            p.animal_type,
-            p.evaluation_status,
-            p.description,
-            p.created_by,
-            m.firstname,
-            m.lastname,
-            m.nickname,
-            m.region,
-            m.position
-        ");
-        $this->db->from('prakteks p');
-        $this->db->join('members m', 'm.juleha_id = p.juleha_id', 'inner');
-        $this->db->join('rphs r', 'r.id = p.rph_id', 'left');
-
-        if (!empty($instructor_id)) {
-            $this->db->where('p.instructor_id', $instructor_id);
-        }
-        $this->db->where_in('p.evaluation_status', array('Menunggu Evaluasi', 'Dalam Pembimbingan'));
-        $this->db->where('(p.role = "praktikan" OR p.role IS NULL OR p.role = "")');
-        $this->db->order_by('p.praktekdate', 'DESC');
-        $this->db->order_by('p.id', 'DESC');
-        $this->db->limit(30);
-
-        $query = $this->db->get();
-        $rows = $query->result();
+        $rows = $this->praktek->get_pending_evaluations($instructor_id, 30);
 
         $results = array();
         foreach ($rows as $row) {

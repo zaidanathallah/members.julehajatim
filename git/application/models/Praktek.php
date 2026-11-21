@@ -544,4 +544,108 @@ class Praktek extends CI_Model {
             (object)array('id' => 2, 'name' => 'RPH Kedurus')
         );
     }
+
+    /**
+     * Hitung total sesi praktikan & instruktur per anggota secara efisien
+     */
+    public function count_member_practices($clean_id) {
+        $clean_id = strtoupper(trim($clean_id));
+
+        $count_praktikan = $this->db->where('juleha_id', $clean_id)
+            ->where('(role = "praktikan" OR role IS NULL OR role = "")')
+            ->from('prakteks')
+            ->count_all_results();
+
+        $count_instruktur = $this->db->group_start()
+            ->where('instructor_id', $clean_id)
+            ->or_where('(juleha_id = "' . $clean_id . '" AND role = "instruktur")')
+            ->group_end()
+            ->from('prakteks')
+            ->count_all_results();
+
+        return array(
+            'praktikan'  => (int)$count_praktikan,
+            'instruktur' => (int)$count_instruktur
+        );
+    }
+
+    /**
+     * Cek apakah juleha_id memiliki hak akses admin (memberlevel < 2)
+     */
+    public function check_is_admin($clean_id) {
+        $clean_id = strtoupper(trim($clean_id));
+        $mb = $this->db->select('memberlevel')->where('juleha_id', $clean_id)->get('members')->row();
+        return (!empty($mb) && $mb->memberlevel !== null && (int)$mb->memberlevel < 2);
+    }
+
+    /**
+     * Pencarian anggota berdasarkan nama atau ID (multi-kata, case-insensitive)
+     */
+    public function search_members($q, $limit = 25) {
+        $this->db->select("juleha_id, nickname, firstname, lastname, region, position");
+        $this->db->from('members');
+
+        if (!empty($q)) {
+            $words = preg_split('/\s+/', trim($q));
+            foreach ($words as $w) {
+                $w = trim($w);
+                if ($w === '') continue;
+                $clean_w = $this->db->escape_like_str(strtolower($w));
+                $this->db->where("(
+                    LOWER(juleha_id) LIKE '%{$clean_w}%' OR
+                    LOWER(nickname) LIKE '%{$clean_w}%' OR
+                    LOWER(firstname) LIKE '%{$clean_w}%' OR
+                    LOWER(lastname) LIKE '%{$clean_w}%' OR
+                    LOWER(CONCAT_WS(' ', firstname, lastname)) LIKE '%{$clean_w}%' OR
+                    LOWER(CONCAT_WS(' ', nickname, firstname, lastname)) LIKE '%{$clean_w}%'
+                )", NULL, FALSE);
+            }
+        }
+
+        $this->db->order_by('firstname', 'ASC');
+        $this->db->order_by('nickname', 'ASC');
+        if ($limit > 0) {
+            $this->db->limit($limit);
+        }
+
+        return $this->db->get()->result();
+    }
+
+    /**
+     * Ambil antrean peserta yang menunggu evaluasi instruktur
+     */
+    public function get_pending_evaluations($instructor_id = '', $limit = 30) {
+        $this->db->select("
+            p.id as praktek_id,
+            p.juleha_id,
+            p.praktekdate,
+            p.rph_id,
+            COALESCE(NULLIF(p.location_name, ''), r.name, 'RPH TOW') as location_name,
+            p.animal_type,
+            p.evaluation_status,
+            p.description,
+            p.created_by,
+            m.firstname,
+            m.lastname,
+            m.nickname,
+            m.region,
+            m.position
+        ");
+        $this->db->from('prakteks p');
+        $this->db->join('members m', 'm.juleha_id = p.juleha_id', 'inner');
+        $this->db->join('rphs r', 'r.id = p.rph_id', 'left');
+
+        if (!empty($instructor_id)) {
+            $this->db->where('p.instructor_id', $instructor_id);
+        }
+        $this->db->where_in('p.evaluation_status', array('Menunggu Evaluasi', 'Dalam Pembimbingan'));
+        $this->db->where('(p.role = "praktikan" OR p.role IS NULL OR p.role = "")');
+        $this->db->order_by('p.praktekdate', 'DESC');
+        $this->db->order_by('p.id', 'DESC');
+        if ($limit > 0) {
+            $this->db->limit($limit);
+        }
+
+        return $this->db->get()->result();
+    }
 }
