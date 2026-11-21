@@ -733,7 +733,7 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
                     </button>
                     <?php else: ?>
                     <div class="alert alert-light border small text-muted text-center mb-3" style="border-radius: 10px;">
-                      <i class="fas fa-info-circle text-success mr-1"></i> <strong>Informasi KTA:</strong> Kartu Tanda Anggota (KTA) fisik resmi diterbitkan dan dicetak secara terkoordinir oleh Pengurus DPW Juleha Jawa Timur.
+                      <i class="fas fa-info-circle text-success mr-1"></i> <strong>Informasi KTA:</strong> Kartu Tanda Anggota (KTA) fisik resmi diterbitkan dan dicetak secara terkoordinir oleh Pengurus Juleha Jawa Timur.
                     </div>
                     <?php endif; ?>
                     <a href="<?php echo base_url('members/showcard/' . rawurlencode($juleha_id)); ?>" target="_blank" class="btn btn-outline-juleha px-4 py-2 font-weight-bold mr-2 mb-2">

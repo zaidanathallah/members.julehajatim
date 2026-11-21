@@ -546,7 +546,7 @@
     <div class="cert-header">
       <img src="/assets/juleha/logo.png" onerror="this.onerror=null;this.src='/assets/juleha.jpg';" class="cert-logo" alt="Logo Juleha">
       <div class="cert-title-box">
-        <h2>Dewan Pengurus Wilayah Juru Sembelih Halal (JULEHA) Jawa Timur</h2>
+        <h2>Juru Sembelih Halal (Juleha) Jawa Timur</h2>
         <h3>Lembar Rekapitulasi Jam Terbang Praktik Sembelih Halal</h3>
         <p>Sekretariat: Surabaya, Jawa Timur | Website: members.julehajatim.com | Lokasi Resmi: RPH TOW & RPH Kedurus</p>
       </div>
@@ -568,7 +568,7 @@
             &bull; Wilayah: <strong><?php echo htmlspecialchars($member->region ?? 'Jatim'); ?></strong>
           </div>
           <div style="font-size: 11px; color: #059669; margin-top: 3px; font-weight: 600;">
-            <i class="fas fa-check-circle"></i> Anggota Resmi Terdaftar DPW Juleha Jawa Timur
+            <i class="fas fa-check-circle"></i> Anggota Resmi Terdaftar Juleha Jawa Timur
           </div>
         </div>
       </div>
@@ -612,7 +612,7 @@
       </div>
       <div class="cert-ttd">
         <div>Surabaya, <?php echo date('d F Y'); ?></div>
-        <div style="font-weight: 600; font-size: 12px;">DPW Juru Sembelih Halal Jawa Timur</div>
+        <div style="font-weight: 600; font-size: 12px;">Juru Sembelih Halal (Juleha) Jawa Timur</div>
         <div class="cert-ttd-space"></div>
         <div style="font-weight: 700; text-decoration: underline; font-size: 12.5px;">MOCH. MAFTUCHIN</div>
         <div style="color: #64748b; font-size: 11px;">Koordinator Pembimbingan & Praktik RPH</div>
@@ -804,7 +804,7 @@ function exportMemberPdf(sessions) {
     pageMargins: [30, 30, 30, 30],
     content: [
       {
-        text: 'DEWAN PENGURUS WILAYAH JURU SEMBELIH HALAL (JULEHA) JAWA TIMUR',
+        text: 'JURU SEMBELIH HALAL (JULEHA) JAWA TIMUR',
         style: 'docHeader',
         alignment: 'center'
       },
@@ -855,14 +855,14 @@ function exportMemberPdf(sessions) {
         columns: [
           {
             width: '60%',
-            text: 'Catatan:\nDokumen ini merupakan catatan digital resmi jam terbang penyembelihan halal anggota yang terverifikasi dalam basis data DPW Juleha Jawa Timur.',
+            text: 'Catatan:\nDokumen ini merupakan catatan digital resmi jam terbang penyembelihan halal anggota yang terverifikasi dalam basis data Juleha Jawa Timur.',
             fontSize: 8,
             color: '#64748b'
           },
           {
             width: '40%',
             alignment: 'center',
-            text: 'Surabaya, ' + new Date().toLocaleDateString('id-ID') + '\nDPW Juleha Jawa Timur\n\n\n\n( MOCH. MAFTUCHIN )\nKoordinator Praktik Lapangan RPH',
+            text: 'Surabaya, ' + new Date().toLocaleDateString('id-ID') + '\nJuleha Jawa Timur\n\n\n\n( MOCH. MAFTUCHIN )\nKoordinator Praktik Lapangan RPH',
             fontSize: 8.5
           }
         ]
@@ -971,7 +971,7 @@ function exportMemberPrint(sessions) {
     </head>
     <body>
       <div class="kop">
-        <h2>Dewan Pengurus Wilayah Juru Sembelih Halal (Juleha) Jawa Timur</h2>
+        <h2>Juru Sembelih Halal (Juleha) Jawa Timur</h2>
         <h3>Lembar Rekapitulasi Jam Terbang Praktik Lapangan Penyembelihan Halal</h3>
         <p>Sekretariat: Surabaya, Jawa Timur | Website: members.julehajatim.com</p>
       </div>
@@ -1006,7 +1006,7 @@ function exportMemberPrint(sessions) {
         <div style="text-align: center;">
           <div style="font-size: 11px; color: #64748b;">Sistem Keanggotaan Terpadu</div>
           <div style="height: 55px;"></div>
-          <div>DPW Juleha Jawa Timur</div>
+          <div>Juleha Jawa Timur</div>
         </div>
         <div style="text-align: center;">
           <div>Surabaya, ${new Date().toLocaleDateString('id-ID')}</div>
@@ -1052,7 +1052,7 @@ function exportMemberCopy(sessions) {
   });
 
   text += 'Dokumen digital resmi diterbitkan oleh:\n';
-  text += 'DPW Juru Sembelih Halal (Juleha) Jawa Timur\n';
+  text += 'Juru Sembelih Halal (Juleha) Jawa Timur\n';
   text += '🌐 https://members.julehajatim.com';
 
   if (navigator.clipboard) {

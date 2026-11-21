@@ -737,7 +737,7 @@
     <div class="kop-surat-box">
       <img src="/assets/juleha/logo.png" onerror="this.onerror=null;this.src='/assets/juleha.jpg';" class="kop-logo" alt="Logo Juleha">
       <div class="kop-text">
-        <h2>Dewan Pengurus Wilayah Juru Sembelih Halal (JULEHA) Jawa Timur</h2>
+        <h2>Juru Sembelih Halal (Juleha) Jawa Timur</h2>
         <h3>Rekapitulasi Presensi & Riwayat Praktik Lapangan Sembelih</h3>
         <p>Sekretariat: Surabaya, Jawa Timur | Website: members.julehajatim.com | Lokasi Resmi: RPH TOW & RPH Kedurus Surabaya</p>
       </div>
@@ -781,13 +781,13 @@
         <div style="font-weight: 600;">Koordinator Praktik & RPH</div>
         <div class="ttd-space"></div>
         <div style="font-weight: 700; text-decoration: underline;">MOCH. MAFTUCHIN</div>
-        <div style="color: #64748b; font-size: 11px;">DPW Juleha Jawa Timur</div>
+        <div style="color: #64748b; font-size: 11px;">Juleha Jawa Timur</div>
       </div>
       <div class="ttd-box">
         <div>Surabaya, <?php echo date('d F Y'); ?></div>
-        <div style="font-weight: 600;">DPW Juru Sembelih Halal Jawa Timur</div>
+        <div style="font-weight: 600;">Juru Sembelih Halal (Juleha) Jawa Timur</div>
         <div class="ttd-space"></div>
-        <div style="font-weight: 700; text-decoration: underline;">PENGURUS DPW JULEHA JATIM</div>
+        <div style="font-weight: 700; text-decoration: underline;">PENGURUS JULEHA JATIM</div>
         <div style="color: #64748b; font-size: 11px;">Sistem Absensi & Sertifikasi Terpadu</div>
       </div>
     </div>
@@ -915,7 +915,7 @@ $(document).ready(function() {
         className: 'btn-danger font-weight-bold',
         orientation: 'landscape',
         pageSize: 'A4',
-        title: "DPW JULEHA JAWA TIMUR - REKAPITULASI PRAKTIK LAPANGAN SEMBELIH",
+        title: "JULEHA JATIM - REKAPITULASI PRAKTIK LAPANGAN SEMBELIH",
         exportOptions: {
           columns: [1, 2, 3, 4, 5, 6, 7, 8],
           rows: function(idx, data, node) {
@@ -936,7 +936,7 @@ $(document).ready(function() {
           doc.styles.tableHeader.alignment = 'center';
           doc.content[1].table.widths = ['4%', '15%', '18%', '10%', '11%', '15%', '12%', '15%'];
           doc.content.unshift({
-            text: 'DEWAN PENGURUS WILAYAH JURU SEMBELIH HALAL (JULEHA) JAWA TIMUR\nRekapitulasi Presensi & Praktik Sembelih Resmi RPH TOW & RPH Kedurus\nWebsite: members.julehajatim.com\n',
+            text: 'JURU SEMBELIH HALAL (JULEHA) JAWA TIMUR\nRekapitulasi Presensi & Praktik Sembelih Resmi RPH TOW & RPH Kedurus\nWebsite: members.julehajatim.com\n',
             alignment: 'center',
             fontSize: 11,
             bold: true,
@@ -1208,7 +1208,7 @@ function exportToCopy(rows) {
     text += '   • Catatan: ' + r.description + '\n\n';
   });
 
-  text += 'DPW Juru Sembelih Halal (Juleha) Jawa Timur\nhttps://members.julehajatim.com';
+  text += 'Juru Sembelih Halal (Juleha) Jawa Timur\nhttps://members.julehajatim.com';
 
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(function() {
@@ -1269,7 +1269,7 @@ function exportToPrint(rows) {
     </head>
     <body>
       <div class="kop">
-        <h2>Dewan Pengurus Wilayah Juru Sembelih Halal (Juleha) Jawa Timur</h2>
+        <h2>Juru Sembelih Halal (Juleha) Jawa Timur</h2>
         <h3>Rekapitulasi Presensi & Praktik Sembelih Resmi di RPH TOW & RPH Kedurus</h3>
         <p>Sekretariat: Surabaya, Jawa Timur | Website: members.julehajatim.com</p>
       </div>
@@ -1302,9 +1302,9 @@ function exportToPrint(rows) {
         </div>
         <div style="text-align: center;">
           <div>Surabaya, ${new Date().toLocaleDateString('id-ID')}</div>
-          <div>DPW Juleha Jawa Timur</div>
+          <div>Juleha Jawa Timur</div>
           <div style="height: 60px;"></div>
-          <div><strong>Pengurus DPW</strong></div>
+          <div><strong>Pengurus Juleha Jatim</strong></div>
         </div>
       </div>
       <script>
