@@ -61,26 +61,44 @@ class Prakteks extends CI_Controller {
             return;
         }
 
+        $period = $this->input->get('period');
+        $date = $this->input->get('date');
+        $month = $this->input->get('month');
+        $year = $this->input->get('year');
+
+        if ($period === 'today') {
+            $date = date('Y-m-d');
+        } elseif ($period === 'this_month') {
+            $month = date('n');
+            $year = date('Y');
+        } elseif ($period === 'this_year') {
+            $year = date('Y');
+        }
+
         $filters = array(
+            'period'            => $period,
+            'date'              => $date,
             'role'              => $this->input->get('role'),
             'animal_type'       => $this->input->get('animal_type'),
             'rph_id'            => $this->input->get('rph_id'),
             'evaluation_status' => $this->input->get('evaluation_status'),
-            'year'              => $this->input->get('year'),
-            'month'             => $this->input->get('month'),
+            'year'              => $year,
+            'month'             => $month,
+            'juleha_id'         => $this->input->get('juleha_id'),
             'search'            => $this->input->get('search')
         );
 
         $data = array(
-            'title'         => 'Rekapitulasi Presensi & Praktik - Juleha Jawa Timur',
-            'stats'         => $this->praktek->get_statistics(),
-            'records'       => $this->praktek->get_all_records($filters),
-            'rphs'          => $this->praktek->get_rphs(),
-            'filters'       => $filters,
-            'is_admin'      => $this->is_admin(),
-            'is_instructor' => $this->is_instructor(),
-            'logged_id'     => $this->get_session_data('juleha_id'),
-            'active'        => array('list' => '', 'profile' => '', 'praktek' => 'active', 'praktek_index' => 'active')
+            'title'             => 'Rekapitulasi Presensi & Praktik - Juleha Jawa Timur',
+            'stats'             => $this->praktek->get_statistics(),
+            'records'           => $this->praktek->get_all_records($filters),
+            'rphs'              => $this->praktek->get_rphs(),
+            'practiced_members' => $this->praktek->get_distinct_practiced_members(),
+            'filters'           => $filters,
+            'is_admin'          => $this->is_admin(),
+            'is_instructor'     => $this->is_instructor(),
+            'logged_id'         => $this->get_session_data('juleha_id'),
+            'active'            => array('list' => '', 'profile' => '', 'praktek' => 'active', 'praktek_index' => 'active')
         );
 
         $this->load->view('prakteks/index', $data);

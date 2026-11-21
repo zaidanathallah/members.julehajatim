@@ -248,6 +248,10 @@ class Praktek extends CI_Model {
             $this->db->where('p.evaluation_status', $filters['evaluation_status']);
         }
 
+        if (!empty($filters['date'])) {
+            $this->db->where("DATE(p.praktekdate) =", $filters['date']);
+        }
+
         if (!empty($filters['year'])) {
             $this->db->where("YEAR(p.praktekdate) = ", (int)$filters['year']);
         }
@@ -276,6 +280,22 @@ class Praktek extends CI_Model {
 
         $query = $this->db->get();
         return $query->result();
+    }
+
+    /**
+     * Ambil daftar unik anggota yang pernah mengikuti/mencatatkan jam terbang praktik
+     * Digunakan untuk filter pemilihan anggota spesifik di admin
+     */
+    public function get_distinct_practiced_members() {
+        return $this->db->select("DISTINCT(p.juleha_id), m.nickname, m.firstname, m.lastname, m.region")
+            ->from('prakteks p')
+            ->join('members m', 'm.juleha_id = p.juleha_id', 'left')
+            ->where('p.juleha_id IS NOT NULL')
+            ->where('p.juleha_id !=', '')
+            ->order_by('m.firstname', 'ASC')
+            ->order_by('m.nickname', 'ASC')
+            ->get()
+            ->result();
     }
 
     /**
