@@ -21,6 +21,9 @@
     .content-wrapper {
       background-color: #f8fafc;
     }
+    .grow {
+      flex-grow: 1 !important;
+    }
     .card-modern {
       background: #ffffff;
       border-radius: 16px;
@@ -498,7 +501,7 @@
                 <div class="member-preview-card mb-4" id="memberPreviewCard">
                   <div class="d-flex align-items-center">
                     <img src="/assets/adminlte/dist/img/avatar5.png" id="previewPhoto" class="member-avatar-preview mr-3" alt="Foto KTA">
-                    <div class="flex-grow-1">
+                    <div class="grow">
                       <div class="d-flex align-items-center justify-content-between flex-wrap gap-1">
                         <span class="badge badge-success px-2 py-1 font-weight-bold" id="previewJulehaId">ID: -</span>
                         <span class="badge badge-light border text-muted" id="previewRegion">Daerah: -</span>
@@ -624,7 +627,7 @@
                         <img src="/assets/adminlte/dist/img/avatar5.png" id="selectedInstPhoto" class="rounded-circle mr-3 border" 
                              style="width: 50px; height: 50px; object-fit: cover; border-width: 2px !important; border-color: #10b981 !important;"
                              onerror="this.onerror=null;this.src='/assets/adminlte/dist/img/avatar5.png';">
-                        <div class="flex-grow-1">
+                        <div class="grow">
                           <div class="d-flex align-items-center justify-content-between">
                             <h6 class="font-weight-bold mb-0 text-success" id="selectedInstName">-</h6>
                             <span class="badge badge-success px-2 py-1 font-weight-bold" id="selectedInstBadgeId">-</span>
@@ -1194,7 +1197,7 @@ function renderInstructorSearchResults(instructors) {
     const item = $(`
       <div class="search-item">
         <img src="${inst.photo_url}" class="search-avatar" onerror="this.onerror=null;this.src='/assets/adminlte/dist/img/avatar5.png';">
-        <div class="flex-grow-1 pr-2">
+        <div class="grow pr-2">
           <strong class="text-dark d-block" style="font-size: 0.95rem;">${inst.fullname}</strong>
           <div class="small text-muted">
             <span class="badge badge-success px-2 py-0 mr-1">${inst.id}</span>
