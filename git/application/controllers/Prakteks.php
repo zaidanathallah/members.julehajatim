@@ -89,6 +89,7 @@ class Prakteks extends CI_Controller {
     /**
      * Halaman Scan QR KTA & Input Presensi Praktik
      * Bisa diakses langsung saat scan QR KTA fisik tanpa harus login.
+     * Otomatis mendeteksi jika yang membuka adalah Instruktur Resmi untuk membuka antrean evaluasi realtime.
      */
     public function scan() {
         $this->ensure_session_started();
@@ -108,21 +109,50 @@ class Prakteks extends CI_Controller {
         }
 
         $prefill_id = $this->uri->segment(3) ?: $this->input->get('id');
+        $clean_prefill = '';
+        if (!empty($prefill_id) && preg_match('/([A-Z]{3}[0-9]{6})/i', $prefill_id, $matches)) {
+            $clean_prefill = strtoupper($matches[1]);
+        }
+
         $is_admin = $is_logged ? $this->is_admin() : false;
-        $is_instructor = !empty($logged_id) ? $this->is_instructor($logged_id) : false;
+        $is_logged_instructor = !empty($logged_id) ? $this->is_instructor($logged_id) : false;
+        $is_prefill_instructor = !empty($clean_prefill) ? $this->is_instructor($clean_prefill) : false;
+
+        $is_instructor = ($is_logged_instructor || $is_prefill_instructor);
         $can_evaluate = ($is_admin || $is_instructor);
 
+        // Instruktur aktif yang sedang membuka/bertugas di halaman ini
+        $active_instructor_id = $is_logged_instructor ? $logged_id : ($is_prefill_instructor ? $clean_prefill : null);
+        $active_instructor_name = '';
+        if (!empty($active_instructor_id)) {
+            $inst_mem = $this->member->get($active_instructor_id);
+            if (!empty($inst_mem['res'])) {
+                $im = $inst_mem['res'];
+                $active_instructor_name = trim(($im->firstname ?? '') . ' ' . ($im->lastname ?? ''));
+                if (empty($active_instructor_name)) {
+                    $active_instructor_name = $im->nickname ?? $active_instructor_id;
+                }
+            }
+        }
+
+        // Ambil daftar instruktur resmi aktif untuk tombol cepat pilihan peserta
+        $official_instructors = $this->praktek->get_instructors();
+
         $data = array(
-            'title'         => 'Scan Presensi Praktik KTA - Juleha Jawa Timur',
-            'rphs'          => $this->praktek->get_rphs(),
-            'prefill_id'    => $prefill_id,
-            'is_logged_in'  => $is_logged,
-            'is_admin'      => $is_admin,
-            'is_instructor' => $is_instructor,
-            'logged_id'     => $logged_id,
-            'logged_name'   => $logged_name,
-            'can_evaluate'  => $can_evaluate, // Admin dan Instruktur yang terdaftar dapat mengevaluasi
-            'active'        => array('list' => '', 'profile' => '', 'praktek' => 'active', 'praktek_scan' => 'active')
+            'title'                  => 'Scan Presensi Praktik KTA - Juleha Jawa Timur',
+            'rphs'                   => $this->praktek->get_rphs(),
+            'prefill_id'             => $clean_prefill,
+            'is_logged_in'           => $is_logged,
+            'is_admin'               => $is_admin,
+            'is_instructor'          => $is_instructor,
+            'is_prefill_instructor'  => $is_prefill_instructor,
+            'active_instructor_id'   => $active_instructor_id,
+            'active_instructor_name' => $active_instructor_name,
+            'official_instructors'   => $official_instructors,
+            'logged_id'              => $logged_id,
+            'logged_name'            => $logged_name,
+            'can_evaluate'           => $can_evaluate,
+            'active'                 => array('list' => '', 'profile' => '', 'praktek' => 'active', 'praktek_scan' => 'active')
         );
 
         $this->load->view('prakteks/scan', $data);
@@ -404,6 +434,129 @@ class Prakteks extends CI_Controller {
     }
 
     /**
+     * AJAX: Ambil daftar instruktur resmi atau pencarian instruktur berdasarkan nama/ID
+     * Digunakan oleh peserta untuk memilih instruktur pembimbing di RPH
+     */
+    public function get_instructors_ajax() {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->ensure_session_started();
+
+        $q = trim($this->input->get('q') ?: $this->input->post('q') ?: '');
+        $instructors = $this->praktek->get_instructors();
+
+        $results = array();
+        foreach ($instructors as $inst) {
+            if (($inst->instructor_status ?? 'active') !== 'active') {
+                continue;
+            }
+            $full_name = trim(($inst->firstname ?? '') . ' ' . ($inst->lastname ?? ''));
+            if (empty($full_name)) {
+                $full_name = $inst->nickname ?? $inst->juleha_id;
+            }
+
+            // Filter jika ada query pencarian nama / ID
+            if (!empty($q)) {
+                $haystack = strtolower($inst->juleha_id . ' ' . $full_name . ' ' . ($inst->nickname ?? '') . ' ' . ($inst->region ?? ''));
+                $needle = strtolower($q);
+                if (strpos($haystack, $needle) === false) {
+                    continue;
+                }
+            }
+
+            $results[] = array(
+                'id'             => $inst->juleha_id,
+                'fullname'       => $full_name,
+                'nickname'       => $inst->nickname ?? '',
+                'firstname'      => $inst->firstname ?? '',
+                'lastname'       => $inst->lastname ?? '',
+                'region'         => $inst->region ?? 'Jatim',
+                'position'       => $inst->position ?? 'Instruktur',
+                'notes'          => $inst->instructor_notes ?? 'Instruktur Resmi Juleha Jatim',
+                'photo_url'      => '/images/' . $inst->juleha_id . '.jpg',
+                'total_evaluasi' => (int)($inst->total_evaluasi ?? 0),
+                'total_tugas'    => (int)($inst->total_tugas ?? 0)
+            );
+        }
+
+        echo json_encode($results);
+    }
+
+    /**
+     * AJAX: Ambil antrean peserta praktik real-time yang menunggu evaluasi instruktur
+     */
+    public function get_pending_evaluations_ajax() {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->ensure_session_started();
+
+        $instructor_id = strtoupper(trim($this->input->get('instructor_id') ?: $this->input->post('instructor_id') ?: ''));
+        if (preg_match('/([A-Z]{3}[0-9]{6})/i', $instructor_id, $matches)) {
+            $instructor_id = strtoupper($matches[1]);
+        }
+
+        $this->db->select("
+            p.id as praktek_id,
+            p.juleha_id,
+            p.praktekdate,
+            p.rph_id,
+            COALESCE(NULLIF(p.location_name, ''), r.name, 'RPH TOW') as location_name,
+            p.animal_type,
+            p.evaluation_status,
+            p.description,
+            p.created_by,
+            m.firstname,
+            m.lastname,
+            m.nickname,
+            m.region,
+            m.position
+        ");
+        $this->db->from('prakteks p');
+        $this->db->join('members m', 'm.juleha_id = p.juleha_id', 'inner');
+        $this->db->join('rphs r', 'r.id = p.rph_id', 'left');
+
+        if (!empty($instructor_id)) {
+            $this->db->where('p.instructor_id', $instructor_id);
+        }
+        $this->db->where_in('p.evaluation_status', array('Menunggu Evaluasi', 'Dalam Pembimbingan'));
+        $this->db->where('(p.role = "praktikan" OR p.role IS NULL OR p.role = "")');
+        $this->db->order_by('p.praktekdate', 'DESC');
+        $this->db->order_by('p.id', 'DESC');
+        $this->db->limit(30);
+
+        $query = $this->db->get();
+        $rows = $query->result();
+
+        $results = array();
+        foreach ($rows as $row) {
+            $full_name = trim(($row->firstname ?? '') . ' ' . ($row->lastname ?? ''));
+            if (empty($full_name)) {
+                $full_name = $row->nickname ?? $row->juleha_id;
+            }
+
+            $results[] = array(
+                'praktek_id'        => (int)$row->praktek_id,
+                'juleha_id'         => $row->juleha_id,
+                'fullname'          => $full_name,
+                'nickname'          => $row->nickname ?? '',
+                'region'            => $row->region ?? 'Jatim',
+                'animal_type'       => $row->animal_type ?? 'Sapi',
+                'location_name'     => $row->location_name,
+                'rph_id'            => (int)$row->rph_id,
+                'praktekdate'       => $row->praktekdate,
+                'formatted_time'    => date('d/m/Y H:i', strtotime($row->praktekdate)),
+                'evaluation_status' => $row->evaluation_status ?? 'Menunggu Evaluasi',
+                'description'       => $row->description ?? '',
+                'photo_url'         => '/images/' . $row->juleha_id . '.jpg'
+            );
+        }
+
+        echo json_encode(array(
+            'status' => true,
+            'count'  => count($results),
+            'data'   => $results
+        ));
+    }
+
+    /**
      * AJAX: Simpan presensi / absensi praktik
      * Mendukung presensi mandiri saat scan KTA maupun penilaian langsung oleh instruktur
      */
@@ -414,7 +567,15 @@ class Prakteks extends CI_Controller {
         $is_logged = $this->is_logged_in();
         $logged_id = $is_logged ? $this->get_session_data('juleha_id') : null;
         $is_admin = $is_logged ? $this->is_admin() : false;
-        $is_instructor = !empty($logged_id) ? $this->is_instructor($logged_id) : false;
+        $is_logged_instructor = !empty($logged_id) ? $this->is_instructor($logged_id) : false;
+
+        $evaluator_id = strtoupper(trim($this->input->post('evaluator_id') ?: $logged_id ?: ''));
+        if (preg_match('/([A-Z]{3}[0-9]{6})/i', $evaluator_id, $matches)) {
+            $evaluator_id = strtoupper($matches[1]);
+        }
+        $is_evaluator_instructor = (!empty($evaluator_id) && $this->is_instructor($evaluator_id));
+
+        $can_evaluate = ($is_admin || $is_logged_instructor || $is_evaluator_instructor);
 
         $juleha_id = strtoupper(trim($this->input->post('juleha_id')));
         if (preg_match('/([A-Z]{3}[0-9]{6})/i', $juleha_id, $matches)) {
@@ -445,23 +606,23 @@ class Prakteks extends CI_Controller {
             $praktekdate = str_replace('T', ' ', $praktekdate) . ':00';
         }
 
-        // Logic Keamanan Catatan Evaluasi:
-        // HANYA Instruktur / Admin yang boleh mengisi catatan evaluasi & status kelulusan!
-        // Jika Peserta biasa yang mengabsen dirinya sendiri (atau tanpa login), evaluasi diberi status "Menunggu Evaluasi".
+        // Ambil ID Instruktur Pembimbing yang dipilih
         $instructor_id = strtoupper(trim($this->input->post('instructor_id')));
         if (preg_match('/([A-Z]{3}[0-9]{6})/i', $instructor_id, $matches)) {
             $instructor_id = strtoupper($matches[1]);
         }
 
+        $praktek_id = (int)$this->input->post('id');
+
         if ($role === 'praktikan') {
-            if ($is_admin || $is_instructor || (!empty($instructor_id) && !empty($logged_id) && $instructor_id === $logged_id)) {
-                // Instruktur yang sedang login mengevaluasi peserta
+            if ($can_evaluate) {
+                // Instruktur resmi / Admin sedang mengevaluasi peserta
                 $eval_status = trim($this->input->post('evaluation_status') ?: 'Lulus Praktik');
                 $description = trim($this->input->post('description'));
-                $evaluated_by = $logged_id;
+                $evaluated_by = !empty($evaluator_id) ? $evaluator_id : ($logged_id ?: $instructor_id);
                 $evaluated_at = date('Y-m-d H:i:s');
-                if (empty($instructor_id)) {
-                    $instructor_id = $logged_id;
+                if (empty($instructor_id) && !empty($evaluated_by)) {
+                    $instructor_id = $evaluated_by;
                 }
             } else {
                 // Peserta biasa check-in mandiri -> Tidak bisa mengisi evaluasi sendiri
@@ -474,13 +635,13 @@ class Prakteks extends CI_Controller {
             // Peran Instruktur bertugas
             $eval_status = 'Bertugas';
             $description = trim($this->input->post('description') ?: 'Penugasan Instruktur Pembimbing Praktik di RPH');
-            $evaluated_by = !empty($logged_id) ? $logged_id : $juleha_id;
+            $evaluated_by = !empty($evaluator_id) ? $evaluator_id : ($logged_id ?: $juleha_id);
             $evaluated_at = date('Y-m-d H:i:s');
             $instructor_id = $juleha_id;
         }
 
         $data = array(
-            'id'                => $this->input->post('id'),
+            'id'                => $praktek_id > 0 ? $praktek_id : NULL,
             'juleha_id'         => $juleha_id,
             'role'              => $role,
             'instructor_id'     => !empty($instructor_id) ? $instructor_id : NULL,
@@ -503,11 +664,17 @@ class Prakteks extends CI_Controller {
             }
 
             $rph_nama = ($rph_id === 2) ? 'RPH Kedurus' : 'RPH TOW';
-            $role_label = ($role === 'instruktur') ? 'Instruktur' : 'Praktikan';
+            $role_label = ($role === 'instruktur') ? 'Penugasan Instruktur' : 'Praktikan';
+
+            if ($can_evaluate && $role === 'praktikan') {
+                $msg = 'Alhamdulillah! Evaluasi untuk ' . $member_name . ' (' . $juleha_id . ') berhasil disimpan dengan status: "' . $eval_status . '"!';
+            } else {
+                $msg = 'Alhamdulillah! Presensi ' . $member_name . ' (' . $juleha_id . ') di ' . $rph_nama . ' sebagai ' . $role_label . ' berhasil disimpan!';
+            }
 
             echo json_encode(array(
                 'status'  => true,
-                'message' => 'Alhamdulillah! Presensi ' . $member_name . ' (' . $juleha_id . ') di ' . $rph_nama . ' sebagai ' . $role_label . ' berhasil disimpan!',
+                'message' => $msg,
                 'id'      => $result['id'],
                 'action'  => $result['action']
             ));
