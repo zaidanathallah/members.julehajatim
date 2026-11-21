@@ -558,20 +558,21 @@
                   <input type="hidden" name="id" id="field_id" value="">
                   <input type="hidden" name="evaluator_id" id="evaluator_id" value="<?php echo htmlspecialchars($active_instructor_id ?? '', ENT_QUOTES, 'UTF-8'); ?>">
 
-                  <!-- 1. Peran: Uji Peserta Praktik vs Penugasan Instruktur -->
-                  <div class="form-group mb-3">
-                    <label class="font-weight-bold text-dark small text-uppercase">
-                      <i class="fas fa-user-tag text-success mr-1"></i> Jenis Presensi <span class="text-danger">*</span>
+                  <input type="hidden" name="role" id="role" value="praktikan">
+
+                  <!-- Sub-Pilihan Khusus Mode Instruktur (Hanya tampil di Mode Instruktur Resmi) -->
+                  <div id="instructorActionChoice" class="mb-3 p-3 bg-white rounded border shadow-sm" style="display: <?php echo $can_evaluate ? 'block' : 'none'; ?>; border-color: #10b981 !important;">
+                    <label class="small font-weight-bold text-muted text-uppercase d-block mb-2">
+                      <i class="fas fa-tasks text-success mr-1"></i> Tindakan Instruktur di RPH:
                     </label>
-                    <div class="d-flex role-btn-group" style="gap: 12px;">
-                      <button type="button" class="btn btn-outline-success flex-fill active" id="btnRolePraktikan" onclick="setRole('praktikan')">
-                        <i class="fas fa-cut mr-1"></i> Uji Peserta Praktik
+                    <div class="d-flex flex-wrap" style="gap: 8px;">
+                      <button type="button" class="btn btn-sm btn-success flex-fill font-weight-bold py-2 shadow-sm" id="btnActEvaluateParticipant">
+                        <i class="fas fa-user-check mr-1"></i> 1. Nilai Peserta Praktik
                       </button>
-                      <button type="button" class="btn btn-outline-primary flex-fill" id="btnRoleInstruktur" onclick="setRole('instruktur')">
-                        <i class="fas fa-chalkboard-teacher mr-1"></i> Penugasan Instruktur
+                      <button type="button" class="btn btn-sm btn-outline-primary flex-fill font-weight-bold py-2" id="btnActSelfAttendance">
+                        <i class="fas fa-chalkboard-teacher mr-1"></i> 2. Presensi Tugas Saya Sendiri
                       </button>
                     </div>
-                    <input type="hidden" name="role" id="role" value="praktikan">
                   </div>
 
                   <!-- 2. Juleha ID (Input & Scan Hook) -->
@@ -851,10 +852,11 @@ function setUIMode(mode, memberData) {
     // Alert banner
     $('#modeAlertBanner').css({ background: '#ecfdf5', color: '#065f46' });
     $('#modeAlertIcon').removeClass('fa-id-card text-info').addClass('fa-user-shield text-success');
-    $('#modeAlertText').text('Mode Instruktur Aktif. Pilih peserta dari antrean di atas atau scan KTA fisik peserta untuk mengisi evaluasi.');
+    $('#modeAlertText').text('Mode Instruktur Aktif. Beri evaluasi peserta dari antrean di atas atau scan KTA fisik peserta.');
     
-    // Tampilkan panel antrean peserta
+    // Tampilkan panel antrean peserta & sub-pilihan tindakan instruktur
     $('#sectionQueueEvaluations').slideDown(250);
+    $('#instructorActionChoice').slideDown(200);
     
     // Sembunyikan pemilihan instruktur pembimbing (karena instruktur yang sedang aktif adalah penilainya)
     $('#groupInstructor').slideUp(200);
@@ -885,14 +887,8 @@ function setUIMode(mode, memberData) {
       `);
     }
     
-    // Buka kontrol evaluasi & catatan
-    $('#containerInstructorEvaluation').slideDown(200);
-    $('#containerParticipantEvaluation').slideUp(200);
-    $('#badgeEvalLock').hide();
-    
-    $('#labelJulehaId').html('<i class="fas fa-user-check text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
-    $('#helpJulehaId').text('Pilih peserta dari Antrean di atas atau ketik ID peserta untuk mengisi evaluasi.');
-    $('#btnSubmitPresensi').html('<i class="fas fa-save mr-2"></i> Simpan & Sahkan Evaluasi Peserta').removeClass('btn-submit-presensi').addClass('btn-success');
+    // Set default aksi instruktur: Evaluasi Peserta Praktik
+    setInstructorAction('evaluate');
     
     // Jika baru saja beralih dari scan KTA instruktur, kosongkan kolom ID peserta agar siap diisi peserta yang diuji
     if (memberData && memberData.is_instructor) {
@@ -903,6 +899,7 @@ function setUIMode(mode, memberData) {
   } else {
     // Mode Peserta
     canEvaluate = false;
+    $('#role').val('praktikan');
     
     // Update tombol tab atas
     $('#btnTabPeserta').addClass('btn-success text-white shadow-sm').removeClass('btn-light text-muted');
@@ -918,8 +915,9 @@ function setUIMode(mode, memberData) {
     $('#modeAlertIcon').removeClass('fa-user-shield text-success').addClass('fa-id-card text-info');
     $('#modeAlertText').text('Mode Peserta Aktif. Silakan pilih Instruktur Pembimbing Anda di bawah ini lalu klik Kirim Presensi Kehadiran.');
     
-    // Sembunyikan panel antrean peserta
+    // Sembunyikan panel antrean peserta & sub-pilihan instruktur
     $('#sectionQueueEvaluations').slideUp(200);
+    $('#instructorActionChoice').slideUp(200);
     
     // Tampilkan pilihan instruktur pembimbing
     $('#groupInstructor').slideDown(200);
@@ -927,17 +925,53 @@ function setUIMode(mode, memberData) {
     $('#evaluator_id').val('');
     
     // Kunci evaluasi (hanya info readonly untuk peserta)
+    $('#groupEvaluation').slideDown(200);
     $('#containerInstructorEvaluation').slideUp(200);
     $('#containerParticipantEvaluation').slideDown(200);
     $('#badgeEvalLock').show();
     
     $('#labelJulehaId').html('<i class="fas fa-id-card text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
     $('#helpJulehaId').text('ID Anda terisi otomatis dari scan kartu KTA.');
-    $('#btnSubmitPresensi').html('<i class="fas fa-paper-plane mr-2"></i> Kirim Presensi Kehadiran').removeClass('btn-success').addClass('btn-submit-presensi');
+    $('#btnSubmitPresensi').html('<i class="fas fa-paper-plane mr-2"></i> Kirim Presensi Kehadiran').removeClass('btn-success btn-primary').addClass('btn-submit-presensi');
     
     if (memberData && !memberData.is_instructor) {
       $('#juleha_id').val(memberData.juleha_id);
     }
+  }
+}
+
+// Pengatur Aksi Khusus Instruktur: Nilai Peserta Praktik vs Presensi Tugas Sendiri
+function setInstructorAction(action) {
+  if (action === 'self_duty') {
+    $('#role').val('instruktur');
+    $('#btnActSelfAttendance').addClass('btn-primary text-white shadow-sm').removeClass('btn-outline-primary');
+    $('#btnActEvaluateParticipant').removeClass('btn-success text-white shadow-sm').addClass('btn-outline-success');
+
+    $('#labelJulehaId').html('<i class="fas fa-chalkboard-teacher text-primary mr-1"></i> ID Instruktur yang Bertugas <span class="text-danger">*</span>');
+    $('#helpJulehaId').text('ID Instruktur yang mencatat kehadiran bertugas di RPH.');
+    if (activeInstructorId) {
+      $('#juleha_id').val(activeInstructorId);
+    }
+
+    $('#groupEvaluation').slideUp(200);
+    $('#formHeaderTitle').html('<i class="fas fa-chalkboard-teacher text-primary mr-2"></i> Presensi Kehadiran Tugas Instruktur di RPH');
+    $('#btnSubmitPresensi').html('<i class="fas fa-save mr-2"></i> Simpan Penugasan Instruktur di RPH').removeClass('btn-success btn-submit-presensi').addClass('btn-primary');
+
+  } else {
+    $('#role').val('praktikan');
+    $('#btnActEvaluateParticipant').addClass('btn-success text-white shadow-sm').removeClass('btn-outline-success');
+    $('#btnActSelfAttendance').removeClass('btn-primary text-white shadow-sm').addClass('btn-outline-primary');
+
+    $('#labelJulehaId').html('<i class="fas fa-user-check text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
+    $('#helpJulehaId').text('Pilih peserta dari Antrean di atas atau scan KTA fisik peserta untuk mengisi evaluasi.');
+
+    $('#groupEvaluation').slideDown(200);
+    $('#containerInstructorEvaluation').slideDown(200);
+    $('#containerParticipantEvaluation').slideUp(200);
+    $('#badgeEvalLock').hide();
+
+    $('#formHeaderTitle').html('<i class="fas fa-clipboard-check mr-2"></i> Form Evaluasi Peserta Praktik');
+    $('#btnSubmitPresensi').html('<i class="fas fa-save mr-2"></i> Simpan & Sahkan Evaluasi Peserta').removeClass('btn-primary btn-submit-presensi').addClass('btn-success');
   }
 }
 
@@ -998,8 +1032,12 @@ function startCamera() {
   }
 
   if (!html5QrCode) {
+    const formats = (typeof Html5QrcodeSupportedFormats !== 'undefined' && Html5QrcodeSupportedFormats.QR_CODE)
+      ? [ Html5QrcodeSupportedFormats.QR_CODE ]
+      : undefined;
+
     html5QrCode = new Html5Qrcode("reader", {
-      formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
+      formatsToSupport: formats,
       experimentalFeatures: {
         useBarCodeDetectorIfSupported: true // Deteksi QR Code secepat native app (hardware accelerated)
       },
@@ -1007,9 +1045,15 @@ function startCamera() {
     });
   }
 
-  // Konfigurasi scan ultra responsif scan full frame tanpa cropping (seperti aplikasi scanner native)
+  // Konfigurasi scan ultra responsif
   const scanConfig = {
-    fps: 15,
+    fps: 20,
+    qrbox: function(viewfinderWidth, viewfinderHeight) {
+      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+      const edge = Math.max(220, Math.floor(minEdge * 0.85));
+      return { width: edge, height: edge };
+    },
+    aspectRatio: 1.0,
     disableFlip: true
   };
 
@@ -1249,14 +1293,28 @@ function fetchMemberInfo(julehaId) {
           $('#badgeKtaInstructor').hide();
           $('#quickInstructorActions').hide();
 
-          $('#scanFeedback').html(`
-            <div class="alert alert-success py-2 px-3 small font-weight-bold mb-0">
-              <i class="fas fa-user mr-1"></i> Terdeteksi Peserta Praktik: <strong>${resp.name} (${resp.juleha_id})</strong>. Beralih ke Mode Peserta.
-            </div>
-          `).show();
+          if (currentUIMode === 'instruktur' && activeInstructorId) {
+            // Instruktur sedang aktif menilai peserta di hadapannya!
+            setInstructorAction('evaluate');
+            $('#field_id').val('');
+            $('#juleha_id').val(resp.juleha_id);
+            $('#formHeaderTitle').html('<i class="fas fa-clipboard-check text-warning mr-2"></i> Evaluasi Peserta: <strong>' + resp.name + ' (' + resp.juleha_id + ')</strong>');
+            $('#scanFeedback').html(`
+              <div class="alert alert-success py-2 px-3 small font-weight-bold mb-0">
+                <i class="fas fa-user-check mr-1"></i> Peserta Terdeteksi: <strong>${resp.name} (${resp.juleha_id})</strong>. Siap dinilai & dievaluasi oleh Instruktur.
+              </div>
+            `).show();
+            $('#description').focus();
+          } else {
+            $('#scanFeedback').html(`
+              <div class="alert alert-success py-2 px-3 small font-weight-bold mb-0">
+                <i class="fas fa-user mr-1"></i> Terdeteksi Peserta Praktik: <strong>${resp.name} (${resp.juleha_id})</strong>. Beralih ke Mode Peserta.
+              </div>
+            `).show();
 
-          // Otomatis beralih ke Mode Peserta!
-          setUIMode('peserta', resp);
+            // Otomatis beralih ke Mode Peserta!
+            setUIMode('peserta', resp);
+          }
         }
 
         $('#memberPreviewCard').slideDown(250);
@@ -1494,8 +1552,9 @@ function renderQueueList(items) {
 
 // Saat Instruktur memilih peserta dari Antrean untuk diberi evaluasi
 function selectParticipantForEvaluation(item) {
-  // Pastikan form dalam Mode Instruktur
+  // Pastikan form dalam Mode Instruktur & Aksi Evaluasi Peserta
   setUIMode('instruktur');
+  setInstructorAction('evaluate');
 
   $('#field_id').val(item.praktek_id);
   $('#juleha_id').val(item.juleha_id);
@@ -1525,35 +1584,14 @@ $('#btnRefreshQueue').on('click', function() {
 });
 
 function setRole(role) {
-  $('#role').val(role);
   if (role === 'instruktur') {
-    $('#btnRoleInstruktur').addClass('active btn-primary').removeClass('btn-outline-primary');
-    $('#btnRolePraktikan').removeClass('active btn-success').addClass('btn-outline-success');
-    $('#groupInstructor').slideUp(200);
-    $('#infoInstructorActive').slideUp(200);
-    $('#groupEvaluation').slideUp(200);
-    $('#labelJulehaId').html('<i class="fas fa-id-card text-success mr-1"></i> ID Instruktur yang Bertugas <span class="text-danger">*</span>');
-    if (activeInstructorId) {
-      $('#juleha_id').val(activeInstructorId);
-    }
-    $('#btnSubmitPresensi').html('<i class="fas fa-save mr-2"></i> Simpan Penugasan Instruktur di RPH');
+    setUIMode('instruktur');
+    setInstructorAction('self_duty');
   } else {
-    $('#btnRolePraktikan').addClass('active btn-success').removeClass('btn-outline-success');
-    $('#btnRoleInstruktur').removeClass('active btn-primary').addClass('btn-outline-primary');
-    $('#groupEvaluation').slideDown(200);
-    if (canEvaluate) {
-      $('#groupInstructor').slideUp(200);
-      $('#infoInstructorActive').slideDown(200);
-      $('#labelJulehaId').html('<i class="fas fa-user-check text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
-      $('#btnSubmitPresensi').html('<i class="fas fa-save mr-2"></i> Simpan & Sahkan Evaluasi Peserta').removeClass('btn-submit-presensi').addClass('btn-success');
-    } else {
-      $('#groupInstructor').slideDown(200);
-      $('#infoInstructorActive').slideUp(200);
-      $('#labelJulehaId').html('<i class="fas fa-id-card text-success mr-1"></i> ID Juleha Peserta yang Diuji <span class="text-danger">*</span>');
-      $('#btnSubmitPresensi').html('<i class="fas fa-paper-plane mr-2"></i> Kirim Presensi Kehadiran').removeClass('btn-success').addClass('btn-submit-presensi');
-    }
+    setUIMode('peserta');
   }
 }
+window.setRole = setRole;
 
 // Submit Form Presensi / Evaluasi
 $('#formPresensi').on('submit', function(e) {
@@ -1612,6 +1650,14 @@ $(document).ready(function() {
   initCameras();
   $('#btnStartCamera').on('click', startCamera);
   $('#btnStopCamera').on('click', stopCamera);
+
+  // Sub-Aksi Instruktur: Evaluasi Peserta vs Presensi Tugas Sendiri
+  $('#btnActEvaluateParticipant').on('click', function() {
+    setInstructorAction('evaluate');
+  });
+  $('#btnActSelfAttendance').on('click', function() {
+    setInstructorAction('self_duty');
+  });
 
   // Set mode awal sesuai state pembukaan halaman
   setUIMode(currentUIMode);
