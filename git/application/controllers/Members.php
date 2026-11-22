@@ -40,6 +40,11 @@ Class Members extends CI_Controller{
         return !empty($this->get_session_data('juleha_id'));
     }
 
+    private function is_admin(){
+        $level = $this->get_session_data('memberlevel');
+        return ($this->is_logged_in() && $level !== null && (int)$level < 2);
+    }
+
     function getmax(){
         $region = $this->uri->segment(3);
         $max = $this->member->getmax($region);
@@ -169,6 +174,12 @@ Class Members extends CI_Controller{
             redirect('/members/login');
             return;
         }
+        $target_id = $this->uri->segment(3);
+        $logged_id = $this->get_session_data('juleha_id');
+        if (!$this->is_admin() && $target_id !== $logged_id) {
+            redirect('/members/profile');
+            return;
+        }
         $objs = $this->member->get($this->uri->segment(3));
         $regions = $this->region->gets();
         $data = array(
@@ -187,6 +198,13 @@ Class Members extends CI_Controller{
             redirect('/members/login');
             return;
         }
+
+        // Jika anggota biasa (bukan admin/developer, memberlevel >= 2), arahkan ke beranda profilnya sendiri
+        if (!$this->is_admin()) {
+            redirect('/members/profile');
+            return;
+        }
+
         $this->output->set_header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
         $this->output->set_header("Cache-Control: post-check=0, pre-check=0", false);
         $this->output->set_header("Pragma: no-cache");
@@ -208,6 +226,11 @@ Class Members extends CI_Controller{
             return;
         }
 
+        if (!$this->is_admin()) {
+            redirect('/members/profile');
+            return;
+        }
+
         $analytics = $this->member->get_analytics_data();
 
         $data = array(
@@ -224,6 +247,11 @@ Class Members extends CI_Controller{
     public function cetak_analisis(){
         if (!$this->is_logged_in()) {
             redirect('/members/login');
+            return;
+        }
+
+        if (!$this->is_admin()) {
+            redirect('/members/profile');
             return;
         }
 

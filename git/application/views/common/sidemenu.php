@@ -10,7 +10,7 @@
         </div>
         <div class="info">
           <?php if (isset($_SESSION['juleha_id'])): ?>
-            <a href="#" class="d-block"><?php echo (isset($_SESSION['memberlevel']) && $_SESSION['memberlevel']==='2')?'Member':'Admin';?></a>
+            <a href="<?php echo ((int)($_SESSION['memberlevel'] ?? 2) < 2) ? '/members/index' : '/members/profile'; ?>" class="d-block"><?php echo ((int)($_SESSION['memberlevel'] ?? 2) >= 2)?'Member':'Admin';?></a>
           <?php else: ?>
             <a href="/members/login" class="d-block text-white font-weight-bold">Tamu / Belum Login</a>
           <?php endif; ?>

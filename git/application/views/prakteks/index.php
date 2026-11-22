@@ -435,9 +435,15 @@
       <li class="nav-item">
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
+      <?php if (!empty($is_admin)): ?>
       <li class="nav-item d-none d-sm-inline-block">
         <a href="<?php echo base_url('members/index'); ?>" class="nav-link font-weight-500">Daftar Anggota</a>
       </li>
+      <?php else: ?>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a href="<?php echo base_url('members/profile'); ?>" class="nav-link font-weight-500">Profil Saya</a>
+      </li>
+      <?php endif; ?>
       <li class="nav-item d-none d-sm-inline-block">
         <a href="<?php echo base_url('prakteks/index'); ?>" class="nav-link font-weight-500 active text-success font-weight-bold">Rekap Praktik</a>
       </li>
@@ -480,7 +486,7 @@
           </div>
           <div class="col-sm-6 mt-2 mt-sm-0">
             <ol class="breadcrumb float-sm-right bg-transparent p-0 m-0">
-              <li class="breadcrumb-item"><a href="<?php echo base_url(); ?>" class="text-success">Home</a></li>
+              <li class="breadcrumb-item"><a href="<?php echo (!empty($is_admin)) ? base_url('members/index') : base_url('members/profile'); ?>" class="text-success">Home</a></li>
               <li class="breadcrumb-item active text-muted">Presensi Praktik</li>
             </ol>
           </div>

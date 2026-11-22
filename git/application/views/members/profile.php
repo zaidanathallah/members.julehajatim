@@ -374,8 +374,11 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
       <li class="nav-item">
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
+      <?php 
+        $home_url = (isset($_SESSION['memberlevel']) && (int)$_SESSION['memberlevel'] < 2) ? base_url('members/index') : base_url('members/profile');
+      ?>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="<?php echo base_url(); ?>" class="nav-link font-weight-500">Beranda</a>
+        <a href="<?php echo $home_url; ?>" class="nav-link font-weight-500">Beranda</a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
         <a href="https://julehajatim.com" target="_blank" class="nav-link font-weight-500">Portal Juleha</a>
@@ -416,7 +419,7 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
           </div>
           <div class="col-sm-6 mt-2 mt-sm-0">
             <ol class="breadcrumb float-sm-right bg-transparent p-0 m-0">
-              <li class="breadcrumb-item"><a href="<?php echo base_url(); ?>" class="text-success">Home</a></li>
+              <li class="breadcrumb-item"><a href="<?php echo $home_url; ?>" class="text-success">Home</a></li>
               <li class="breadcrumb-item active text-muted">Profil Anggota</li>
             </ol>
           </div>

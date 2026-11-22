@@ -99,8 +99,16 @@
                 </div>
 
                 <div class="mt-4">
+                    <?php 
+                      $home_url = base_url('members/profile');
+                      if (isset($_SESSION['memberlevel']) && (int)$_SESSION['memberlevel'] < 2) {
+                          $home_url = base_url('members/index');
+                      } elseif (empty($_SESSION['juleha_id'])) {
+                          $home_url = base_url('members/login');
+                      }
+                    ?>
                     <button type="submit" id="btnSubmit" class="btn btn-upload">Upload & Perbarui Foto KTA</button>
-                    <a id="btnBatal" href="<?php echo $hasId ? base_url('members/showcard/' . $cleanId) : base_url(); ?>" class="btn btn-outline-secondary btn-block mt-2">Batal & Kembali</a>
+                    <a id="btnBatal" href="<?php echo $hasId ? base_url('members/showcard/' . $cleanId) : $home_url; ?>" class="btn btn-outline-secondary btn-block mt-2">Batal & Kembali</a>
                 </div>
             </form>
         </div>
@@ -136,7 +144,7 @@ document.getElementById('custom_name').addEventListener('input', function() {
     if (id) {
         btn.href = '<?php echo base_url('members/showcard/'); ?>' + encodeURIComponent(id);
     } else {
-        btn.href = '<?php echo base_url(); ?>';
+        btn.href = '<?php echo $home_url; ?>';
     }
 });
 </script>

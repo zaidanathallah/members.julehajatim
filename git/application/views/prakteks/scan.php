@@ -319,12 +319,15 @@
 
   <!-- Navbar -->
   <nav class="main-header navbar navbar-expand navbar-white navbar-light border-bottom-0 shadow-sm" style="background: #ffffff;">
+    <?php 
+      $home_url = (!empty($is_admin)) ? base_url('members/index') : base_url('members/profile');
+    ?>
     <ul class="navbar-nav">
       <li class="nav-item">
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="<?php echo base_url('members/index'); ?>" class="nav-link font-weight-500">Beranda</a>
+        <a href="<?php echo $home_url; ?>" class="nav-link font-weight-500">Beranda</a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
         <a href="<?php echo base_url('prakteks/index'); ?>" class="nav-link font-weight-500">Rekap Praktik</a>
@@ -373,7 +376,7 @@
           </div>
           <div class="col-sm-5 mt-2 mt-sm-0">
             <ol class="breadcrumb float-sm-right bg-transparent p-0 m-0">
-              <li class="breadcrumb-item"><a href="<?php echo base_url(); ?>" class="text-success">Home</a></li>
+              <li class="breadcrumb-item"><a href="<?php echo $home_url; ?>" class="text-success">Home</a></li>
               <li class="breadcrumb-item"><a href="<?php echo base_url('prakteks/index'); ?>" class="text-success">Praktik</a></li>
               <li class="breadcrumb-item active text-muted">Scan Presensi</li>
             </ol>

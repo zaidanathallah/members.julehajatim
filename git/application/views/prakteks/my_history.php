@@ -369,7 +369,7 @@
           </div>
           <div class="col-sm-6 mt-2 mt-sm-0">
             <ol class="breadcrumb float-sm-right bg-transparent p-0 m-0">
-              <li class="breadcrumb-item"><a href="<?php echo base_url(); ?>" class="text-success">Home</a></li>
+              <li class="breadcrumb-item"><a href="<?php echo base_url('members/profile'); ?>" class="text-success">Home</a></li>
               <li class="breadcrumb-item"><a href="<?php echo base_url('members/profile'); ?>" class="text-success">Profil</a></li>
               <li class="breadcrumb-item active text-muted">Riwayat Praktik</li>
             </ol>

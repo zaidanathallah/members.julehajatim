@@ -180,7 +180,10 @@ $is_instructor = !empty($is_instructor);
   <!-- Top Navbar -->
   <nav class="navbar navbar-expand navbar-white navbar-light border-bottom bg-white shadow-sm mb-4">
     <div class="container">
-      <a class="navbar-brand font-weight-bold" href="/" style="color: #064e3b;">
+      <?php 
+        $brand_url = (!empty($is_admin)) ? base_url('members/index') : (!empty($logged_id) ? base_url('members/profile') : base_url('members/login'));
+      ?>
+      <a class="navbar-brand font-weight-bold" href="<?php echo $brand_url; ?>" style="color: #064e3b;">
         <i class="fas fa-certificate text-success mr-2"></i> Juleha Jawa Timur
       </a>
       <ul class="navbar-nav ml-auto">

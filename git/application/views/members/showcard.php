@@ -210,7 +210,16 @@ $displayName = !empty($fullNameUpper) ? $fullNameUpper : ($obj->nickname ?? $obj
                 <a href="<?php echo base_url('members/uploder/' . rawurlencode($obj->juleha_id)); ?>" class="btn btn-ganti-foto btn-block shadow-sm mt-2">
                     <i class="fas fa-camera mr-1"></i> Ganti / Perbarui Foto KTA
                 </a>
-                <a href="<?php echo base_url(); ?>" class="btn btn-outline-secondary btn-back btn-block mt-2">
+
+                <?php 
+                $home_url = base_url('members/profile');
+                if ($is_admin) {
+                    $home_url = base_url('members/index');
+                } elseif (empty($_SESSION['juleha_id'])) {
+                    $home_url = base_url('members/login');
+                }
+                ?>
+                <a href="<?php echo $home_url; ?>" class="btn btn-outline-secondary btn-back btn-block mt-2">
                     <i class="fas fa-arrow-left mr-1"></i> Kembali ke Beranda
                 </a>
             </div>
